@@ -1,0 +1,30 @@
+# Dependências
+node_modules/
+**/node_modules/
+
+# Builds
+web/dist/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Ambiente
+.env
+.env.local
+*.local
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Dados brutos do INEP (grandes, regeneráveis via `npm run etl`)
+api/data/raw/
+
+# Config local do Claude Code
+.claude/settings.local.json

@@ -1,0 +1,99 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+
+/* ===========================================================
+   EduInsight BI — Tema Pastel / Cores Claras
+   =========================================================== */
+@theme {
+  /* Fundo geral e superfícies */
+  --color-canvas: #f7f6fc;
+  --color-surface: #ffffff;
+  --color-surface-2: #fbfaff;
+
+  /* Verde forte e chapado (cor primária) */
+  --color-brand-50: #eaf4ec;
+  --color-brand-100: #cfe8d4;
+  --color-brand-200: #a3d3ac;
+  --color-brand-300: #6fb87e;
+  --color-brand-400: #43a85a;
+  --color-brand-500: #2f8f43;
+  --color-brand-600: #25702f;
+
+  /* Menta (positivo / sucesso) */
+  --color-mint-100: #dcf5ea;
+  --color-mint-200: #bdecd7;
+  --color-mint-500: #57c79a;
+  --color-mint-600: #3da981;
+
+  /* Pêssego / coral (alerta) */
+  --color-peach-100: #fde7e1;
+  --color-peach-200: #fbd2c7;
+  --color-peach-500: #f0876a;
+  --color-peach-600: #e26a4a;
+
+  /* Céu (informação) */
+  --color-sky-100: #dcefff;
+  --color-sky-200: #bfe4fb;
+  --color-sky-500: #5ab6e8;
+
+  /* Amarelo pastel (atenção) */
+  --color-sun-100: #fdf3d4;
+  --color-sun-200: #fbe9ad;
+  --color-sun-500: #e8c55a;
+
+  /* Texto */
+  --color-ink: #3a3450;
+  --color-ink-soft: #6b6580;
+  --color-ink-faint: #9b96ad;
+
+  --color-line: #ece9f5;
+
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-xl: 1.25rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar suave */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-200);
+  border-radius: 999px;
+  border: 2px solid var(--color-canvas);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Mapa Leaflet — cantos arredondados e popup pastel */
+.leaflet-container {
+  font-family: var(--font-sans);
+  border-radius: 1rem;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 1rem;
+  box-shadow: 0 12px 30px -10px rgba(34, 90, 45, 0.3);
+}
+.leaflet-popup-content {
+  margin: 14px 16px;
+}

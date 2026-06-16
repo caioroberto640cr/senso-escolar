@@ -1,0 +1,29 @@
+{
+  "name": "eduinsight-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API única centralizada do EduInsight — geografia (IBGE) + indicadores (INEP/IDEB)",
+  "scripts": {
+    "etl": "tsx scripts/etl.ts",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "adm-zip": "^0.5.16",
+    "typescript": "^5.7.2",
+    "xlsx": "^0.18.5"
+  }
+}

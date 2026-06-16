@@ -1,0 +1,12 @@
+# Blueprint do Render — EduInsight
+# Serviço único: o Express serve a API (/api) e o site buildado (web/dist).
+services:
+  - type: web
+    name: eduinsight
+    runtime: node
+    plan: free
+    buildCommand: cd web && npm install --include=dev && npm run build && cd ../api && npm install
+    startCommand: cd api && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: '22'

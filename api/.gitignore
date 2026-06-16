@@ -1,0 +1,4 @@
+node_modules/
+# Arquivos brutos baixados do INEP (grandes) — regenerados pelo ETL
+data/raw/
+# Os JSON processados (data/processed/) SÃO versionados para o deploy funcionar
