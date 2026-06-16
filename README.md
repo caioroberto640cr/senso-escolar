@@ -100,3 +100,4 @@ e faixa de desempenho. Com 14k escolas, os pins são **clusterizados** para perf
 - [ ] Banco de dados (PostgreSQL + PostGIS) no lugar dos JSON processados
 - [ ] Chatbot educacional (Claude API)
 - [ ] Autenticação real e push notifications
+"# senso-escolar" 
