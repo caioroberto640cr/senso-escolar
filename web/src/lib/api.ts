@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Escola, EscolaMapa } from '../types';
+import type { EscolaProjetada, EscolaCompleta, EscolaMapa, EtapaKey } from '../types';
 
 const BASE = '/api';
 
@@ -40,7 +40,7 @@ export interface ListaEscolas {
   total: number;
   limit: number;
   offset: number;
-  itens: Escola[];
+  itens: EscolaProjetada[];
 }
 
 export interface MapaEscolas {
@@ -69,9 +69,10 @@ export interface EstadoIBGE {
 // ---------- Funções ----------
 export const api = {
   meta: () => get<Meta>('/meta'),
-  indicadoresNacionais: () => get<IndicadoresNacionais>('/indicadores/nacionais'),
-  indicadoresRegioes: () => get<AggRegiao[]>('/indicadores/regioes'),
-  indicadoresEstados: () => get<AggRegiao[]>('/indicadores/estados'),
+  indicadoresNacionais: (etapa: EtapaKey) =>
+    get<IndicadoresNacionais>(`/indicadores/nacionais?etapa=${etapa}`),
+  indicadoresRegioes: (etapa: EtapaKey) => get<AggRegiao[]>(`/indicadores/regioes?etapa=${etapa}`),
+  indicadoresEstados: (etapa: EtapaKey) => get<AggRegiao[]>(`/indicadores/estados?etapa=${etapa}`),
   alertas: () => get<Alerta[]>('/alertas'),
   escolas: (params: Record<string, string | number | undefined>) => {
     const qs = new URLSearchParams(
@@ -89,7 +90,7 @@ export const api = {
     );
     return get<MapaEscolas>(`/escolas/mapa?${qs}`);
   },
-  escola: (id: string) => get<Escola>(`/escolas/${id}`),
+  escola: (id: string) => get<EscolaCompleta>(`/escolas/${id}`),
   estados: () => get<EstadoIBGE[]>('/geografia/estados'),
 };
 

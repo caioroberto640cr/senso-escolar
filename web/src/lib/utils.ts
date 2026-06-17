@@ -1,4 +1,4 @@
-import type { Escola } from '../types';
+import type { DependenciaAdministrativa } from '../types';
 
 /** Classe de cor pastel para um score 0–10 (verde/amarelo/coral). */
 export function scoreTone(score: number): {
@@ -16,7 +16,7 @@ export function scoreTone(score: number): {
   return { label: 'Crítico', text: 'text-peach-600', bg: 'bg-peach-100', hex: '#f0876a' };
 }
 
-export function dependenciaLabel(d: Escola['dependencia']): string {
+export function dependenciaLabel(d: DependenciaAdministrativa): string {
   return { federal: 'Federal', estadual: 'Estadual', municipal: 'Municipal', privada: 'Privada' }[d];
 }
 

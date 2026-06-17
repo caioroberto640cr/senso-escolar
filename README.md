@@ -25,7 +25,7 @@ Os dados **não são fictícios**. A API serve:
 
 | Dado | Fonte real | Como |
 |------|-----------|------|
-| Escolas + IDEB 2023 (Ensino Médio) | **INEP** | ETL do arquivo oficial `divulgacao_ensino_medio_escolas_2023.zip` → **14.457 escolas reais** |
+| Escolas + IDEB 2023 (3 etapas) | **INEP** | ETL dos arquivos oficiais de Anos Iniciais, Anos Finais e Ensino Médio → **64.479 escolas reais** (41.295 + 31.092 + 14.457) |
 | Taxa de aprovação e nota SAEB | **INEP** | mesmas planilhas do IDEB |
 | Coordenadas dos municípios | **IBGE** | centroide real de cada município |
 | Estados, regiões, municípios | **IBGE** | API REST ao vivo (`servicodados.ibge.gov.br`) |
@@ -34,8 +34,9 @@ Os dados **não são fictícios**. A API serve:
 
 > Observação: IDEB por escola só existe como **arquivo** no INEP (não há API REST ao
 > vivo). Por isso há um passo de **ETL** (`api/scripts/etl.ts`) que baixa e processa os
-> dados oficiais uma vez. Atualmente carregado o **Ensino Médio**; Anos Iniciais/Finais
-> podem ser adicionados rodando o ETL para os respectivos arquivos.
+> dados oficiais uma vez. Como o IDEB de etapas diferentes não é comparável, cada escola
+> guarda indicadores **por etapa** e a app tem um **seletor de etapa** (Anos Iniciais /
+> Anos Finais / Ensino Médio). 2023 é o IDEB mais recente divulgado.
 
 ## Como rodar (API + Web)
 
@@ -96,7 +97,6 @@ e faixa de desempenho. Com 14k escolas, os pins são **clusterizados** para perf
 ## Próximos passos
 
 - [ ] App **mobile** em Expo consumindo a mesma API
-- [ ] Ampliar o ETL para Anos Iniciais/Finais (mais escolas e etapas)
 - [ ] Banco de dados (PostgreSQL + PostGIS) no lugar dos JSON processados
 - [ ] Chatbot educacional (Claude API)
 - [ ] Autenticação real e push notifications

@@ -4,7 +4,9 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Loading, ErrorState } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
+import { useEtapa } from '../lib/etapa';
 import { UFS } from '../data/mock';
+import { etapaLabel } from '../types';
 import { cx, dependenciaLabel, scoreTone } from '../lib/utils';
 
 type Ordem = 'ideb' | 'aprovacao' | 'nome';
@@ -26,14 +28,15 @@ export default function Schools() {
   const [limit, setLimit] = useState(24);
 
   const buscaDebounced = useDebounce(busca);
+  const { etapa } = useEtapa();
 
   const { data, loading, error } = useFetch(
-    () => api.escolas({ q: buscaDebounced, uf, sort: ordem, limit }),
-    [buscaDebounced, uf, ordem, limit]
+    () => api.escolas({ etapa, q: buscaDebounced, uf, sort: ordem, limit }),
+    [etapa, buscaDebounced, uf, ordem, limit]
   );
 
   // reseta paginação ao mudar filtros
-  useEffect(() => setLimit(24), [buscaDebounced, uf, ordem]);
+  useEffect(() => setLimit(24), [buscaDebounced, uf, ordem, etapa]);
 
   return (
     <div className="space-y-5">
@@ -96,7 +99,7 @@ export default function Schools() {
                     <p className="text-xs text-ink-faint mb-3">{e.municipio} · {e.estado}</p>
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       <Badge tone="brand">{dependenciaLabel(e.dependencia)}</Badge>
-                      <Badge tone="neutral">Ensino Médio</Badge>
+                      <Badge tone="neutral">{etapaLabel(etapa)}</Badge>
                     </div>
                     <div className="grid grid-cols-3 gap-2 border-t border-line pt-3">
                       <div>

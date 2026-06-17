@@ -12,7 +12,9 @@ import {
 import { Card, SectionTitle } from '../components/ui/Card';
 import { Loading } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
-import type { Escola } from '../types';
+import { useEtapa } from '../lib/etapa';
+import type { EscolaCompleta } from '../types';
+import { etapaLabel } from '../types';
 import { cx } from '../lib/utils';
 
 const cores = ['#2f8f43', '#5ab6e8', '#f0876a'];
@@ -27,12 +29,24 @@ function useDebounce<T>(v: T, ms = 350): T {
 }
 
 export default function Comparativo() {
+  const { etapa } = useEtapa();
   const [busca, setBusca] = useState('');
   const [ids, setIds] = useState<string[]>([]);
-  const [escolasSel, setEscolasSel] = useState<Escola[]>([]);
+  const [escolasSel, setEscolasSel] = useState<EscolaCompleta[]>([]);
 
   const buscaD = useDebounce(busca);
-  const resultados = useFetch(() => api.escolas({ q: buscaD, limit: 10, sort: 'ideb' }), [buscaD]);
+  const resultados = useFetch(
+    () => api.escolas({ etapa, q: buscaD, limit: 10, sort: 'ideb' }),
+    [etapa, buscaD]
+  );
+
+  // só as escolas selecionadas que têm a etapa atual
+  const comEtapa = escolasSel.filter((e) => e.indicadores[etapa]);
+  const corDe = (id: string) => {
+    const i = comEtapa.findIndex((e) => e.id_escola === id);
+    return i >= 0 ? cores[i] : '#cbd5d1';
+  };
+  const semEtapa = escolasSel.length - comEtapa.length;
 
   // carrega dados completos das escolas selecionadas
   useEffect(() => {
@@ -56,8 +70,8 @@ export default function Comparativo() {
   const anos = [2017, 2019, 2021, 2023];
   const dados = anos.map((ano) => {
     const row: Record<string, number | string> = { ano };
-    escolasSel.forEach((e) => {
-      const v = e.historico_ideb.find((p) => p.ano === ano)?.valor;
+    comEtapa.forEach((e) => {
+      const v = e.indicadores[etapa]!.historico_ideb.find((p) => p.ano === ano)?.valor;
       if (v != null) row[e.nome] = v;
     });
     return row;
@@ -78,19 +92,31 @@ export default function Comparativo() {
           />
         </div>
 
-        {ids.length > 0 && (
+        {escolasSel.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {escolasSel.map((e, i) => (
-              <span
-                key={e.id_escola}
-                className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 text-brand-600 px-2.5 py-1 text-xs font-medium"
-              >
-                <span className="h-2 w-2 rounded-full" style={{ background: cores[i] }} />
-                {e.nome.slice(0, 22)}
-                <button onClick={() => toggle(e.id_escola)} className="hover:text-brand-700">✕</button>
-              </span>
-            ))}
+            {escolasSel.map((e) => {
+              const temEtapa = !!e.indicadores[etapa];
+              return (
+                <span
+                  key={e.id_escola}
+                  title={temEtapa ? '' : `Sem dados de ${etapaLabel(etapa)}`}
+                  className={cx(
+                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
+                    temEtapa ? 'bg-brand-100 text-brand-600' : 'bg-brand-50 text-ink-faint'
+                  )}
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ background: corDe(e.id_escola) }} />
+                  {e.nome.slice(0, 22)}
+                  <button onClick={() => toggle(e.id_escola)} className="hover:text-brand-700">✕</button>
+                </span>
+              );
+            })}
           </div>
+        )}
+        {semEtapa > 0 && (
+          <p className="text-[11px] text-ink-faint mb-3">
+            {semEtapa} escola(s) selecionada(s) sem dados de {etapaLabel(etapa)}.
+          </p>
         )}
 
         <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1">
@@ -125,8 +151,8 @@ export default function Comparativo() {
 
       <div className="space-y-6">
         <Card>
-          <SectionTitle title="Evolução comparativa do IDEB" subtitle="Linhas sobrepostas por escola" />
-          {escolasSel.length === 0 ? (
+          <SectionTitle title="Evolução comparativa do IDEB" subtitle={`${etapaLabel(etapa)} · linhas sobrepostas por escola`} />
+          {comEtapa.length === 0 ? (
             <p className="text-sm text-ink-faint py-16 text-center">
               Busque e selecione escolas à esquerda para comparar.
             </p>
@@ -138,7 +164,7 @@ export default function Comparativo() {
                 <YAxis domain={[0, 10]} tick={{ fontSize: 12, fill: '#9b96ad' }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #ece9f5', fontSize: 13 }} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                {escolasSel.map((e, i) => (
+                {comEtapa.map((e, i) => (
                   <Line key={e.id_escola} type="monotone" dataKey={e.nome} stroke={cores[i]} strokeWidth={3} dot={{ r: 4 }} />
                 ))}
               </LineChart>
@@ -146,10 +172,10 @@ export default function Comparativo() {
           )}
         </Card>
 
-        {escolasSel.length > 0 && (
+        {comEtapa.length > 0 && (
           <Card padded={false}>
             <div className="p-5 pb-0">
-              <SectionTitle title="Tabela comparativa" subtitle="Indicadores reais (2023)" />
+              <SectionTitle title="Tabela comparativa" subtitle={`${etapaLabel(etapa)} · indicadores reais (2023)`} />
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -162,19 +188,22 @@ export default function Comparativo() {
                   </tr>
                 </thead>
                 <tbody>
-                  {escolasSel.map((e, i) => (
-                    <tr key={e.id_escola} className="border-b border-line last:border-0">
-                      <td className="px-5 py-3">
-                        <span className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full" style={{ background: cores[i] }} />
-                          <span className="font-medium text-ink">{e.nome}</span>
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-ink">{e.ideb.toFixed(1)}</td>
-                      <td className="px-5 py-3 text-ink">{e.taxa_aprovacao != null ? `${e.taxa_aprovacao}%` : '—'}</td>
-                      <td className="px-5 py-3 text-ink">{e.nota_saeb ?? '—'}</td>
-                    </tr>
-                  ))}
+                  {comEtapa.map((e, i) => {
+                    const ind = e.indicadores[etapa]!;
+                    return (
+                      <tr key={e.id_escola} className="border-b border-line last:border-0">
+                        <td className="px-5 py-3">
+                          <span className="flex items-center gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full" style={{ background: cores[i] }} />
+                            <span className="font-medium text-ink">{e.nome}</span>
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-ink">{ind.ideb.toFixed(1)}</td>
+                        <td className="px-5 py-3 text-ink">{ind.taxa_aprovacao != null ? `${ind.taxa_aprovacao}%` : '—'}</td>
+                        <td className="px-5 py-3 text-ink">{ind.nota_saeb ?? '—'}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

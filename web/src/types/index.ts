@@ -9,7 +9,17 @@ export type DependenciaAdministrativa =
   | 'municipal'
   | 'privada';
 
-export type EtapaEnsino = 'fundamental' | 'medio';
+/** Etapas reais do IDEB (chaves usadas pela API). */
+export type EtapaKey = 'anos_iniciais' | 'anos_finais' | 'medio';
+
+export const ETAPAS: { key: EtapaKey; label: string; curto: string }[] = [
+  { key: 'anos_iniciais', label: 'Anos Iniciais (EF)', curto: 'Anos Iniciais' },
+  { key: 'anos_finais', label: 'Anos Finais (EF)', curto: 'Anos Finais' },
+  { key: 'medio', label: 'Ensino Médio', curto: 'Ensino Médio' },
+];
+
+export const etapaLabel = (k: EtapaKey): string =>
+  ETAPAS.find((e) => e.key === k)?.curto ?? k;
 
 export type Regiao = 'Norte' | 'Nordeste' | 'Centro-Oeste' | 'Sudeste' | 'Sul';
 
@@ -21,27 +31,48 @@ export interface PontoHistorico {
   valor: number;
 }
 
-export interface Escola {
-  id_escola: string; // código INEP (real)
-  nome: string;
-  municipio: string;
-  cod_municipio?: number;
-  estado: string; // UF
-  regiao: Regiao;
-  dependencia: DependenciaAdministrativa;
-  etapas: EtapaEnsino[];
-  // Geolocalização (centroide real do município)
-  latitude: number;
-  longitude: number;
-  // Indicadores reais do INEP (IDEB 2023 — Ensino Médio)
+/** Indicadores reais de UMA etapa. */
+export interface IndicadorEtapa {
   ideb: number;
-  taxa_aprovacao: number | null; // %
-  nota_saeb: number | null; // nota média padronizada
-  score_geral: number; // 0–10 (= IDEB), usado para colorir o pin
+  taxa_aprovacao: number | null;
+  nota_saeb: number | null;
   historico_ideb: PontoHistorico[];
 }
 
-/** Versão enxuta usada no mapa */
+/** Escola "achatada" para uma etapa — usada em listas e mapa. */
+export interface EscolaProjetada {
+  id_escola: string; // código INEP (real)
+  nome: string;
+  municipio: string;
+  estado: string; // UF
+  regiao: Regiao;
+  dependencia: DependenciaAdministrativa;
+  etapas: EtapaKey[];
+  latitude: number;
+  longitude: number;
+  ideb: number;
+  taxa_aprovacao: number | null;
+  nota_saeb: number | null;
+  score_geral: number; // = IDEB da etapa, usado para colorir o pin
+  historico_ideb: PontoHistorico[];
+}
+
+/** Registro completo da escola (todas as etapas) — usado no detalhe. */
+export interface EscolaCompleta {
+  id_escola: string;
+  nome: string;
+  municipio: string;
+  cod_municipio: number;
+  estado: string;
+  regiao: Regiao;
+  dependencia: DependenciaAdministrativa;
+  etapas: EtapaKey[];
+  latitude: number;
+  longitude: number;
+  indicadores: Partial<Record<EtapaKey, IndicadorEtapa>>;
+}
+
+/** Versão enxuta usada no mapa (subset da projetada). */
 export interface EscolaMapa {
   id_escola: string;
   nome: string;

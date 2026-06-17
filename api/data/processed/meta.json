@@ -1,14 +1,18 @@
 {
-  "gerado_em": "2026-06-16T20:04:48.535Z",
-  "fonte_indicadores": "INEP — IDEB 2023 (Ensino Médio, por escola)",
+  "gerado_em": "2026-06-17T19:00:29.575Z",
+  "fonte_indicadores": "INEP — IDEB 2023 (Anos Iniciais, Anos Finais e Ensino Médio, por escola)",
   "fonte_coordenadas": "IBGE (via dataset municipios-brasileiros)",
-  "total_escolas": 14457,
-  "etapa": "Ensino Médio",
+  "total_escolas": 64479,
+  "etapas": {
+    "anos_iniciais": 41295,
+    "anos_finais": 31092,
+    "medio": 14457
+  },
   "anos": [
     2017,
     2019,
     2021,
     2023
   ],
-  "observacao": "IDEB, Taxa de Aprovação e Nota SAEB são dados reais do INEP (2023). Coordenadas são o centroide real do município (com leve dispersão para não sobrepor)."
+  "observacao": "IDEB, Taxa de Aprovação e Nota SAEB são dados reais do INEP (2023), separados por etapa (não comparáveis entre si). Coordenadas = centroide real do município (com leve dispersão)."
 }

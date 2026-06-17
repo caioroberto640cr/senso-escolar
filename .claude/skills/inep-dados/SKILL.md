@@ -13,7 +13,8 @@ O ETL fica em `api/scripts/etl.ts` e roda com `npm run etl` (dentro de `api/`).
 
 - **IDEB por escola** — `https://download.inep.gov.br/ideb/resultados/divulgacao_<etapa>_escolas_2023.zip`
   onde `<etapa>` ∈ `anos_iniciais` | `anos_finais` | `ensino_medio`. Cada zip contém um
-  **.xlsx**. Hoje só o **ensino médio** está carregado (≈14.457 escolas com IDEB 2023).
+  **.xlsx**. As **3 etapas** estão carregadas (AI 41.295 · AF 31.092 · EM 14.457;
+  64.479 escolas únicas, IDEB 2023).
 - **Coordenadas de municípios** — dataset `municipios-brasileiros` (derivado do IBGE):
   `codigo_ibge, latitude, longitude`. Usado como **centroide do município**.
 - **Geografia ao vivo** — API do IBGE `servicodados.ibge.gov.br/api/v1/localidades`
@@ -34,25 +35,28 @@ O ETL fica em `api/scripts/etl.ts` e roda com `npm run etl` (dentro de `api/`).
 ## Saída do ETL (versionada em git)
 
 `api/data/processed/`:
-- `escolas.json` — uma escola por registro (ver modelo abaixo).
-- `agregados.json` — `{ nacional, regiao[], estado[], municipio[] }`, **derivados** das
-  escolas reais (média de IDEB, contagem, etc.).
-- `alertas.json` — derivados: maiores **quedas de IDEB 2021→2023**.
-- `meta.json` — fonte, etapa, data de geração, total.
+- `escolas.json` — uma escola por registro, com indicadores **por etapa** (~30 MB).
+- `agregados.json` — por etapa: `{ anos_iniciais, anos_finais, medio }`, cada um com
+  `{ nacional, regiao[], estado[] }`, **derivados** das escolas reais.
+- `alertas.json` — derivados: maiores **quedas de IDEB 2021→2023** (com a etapa).
+- `meta.json` — fonte, etapas/contagens, data de geração, total.
 
 Os zips em `api/data/raw/` são **gitignored** (grandes, regeneráveis pelo ETL).
 Os JSON processados **são commitados** para o deploy funcionar sem baixar do INEP.
 
 ## Modelo de dados (campos reais)
 
-`Escola` (tipos em `web/src/types/index.ts` e `api/src/store.ts`):
-`id_escola` (INEP), `nome`, `municipio`, `cod_municipio`, `estado` (UF), `regiao`,
-`dependencia` (federal/estadual/municipal/privada), `etapas[]`, `latitude`, `longitude`,
-`ideb`, `taxa_aprovacao` (`number|null`), `nota_saeb` (`number|null`), `score_geral`
-(= IDEB, usado para colorir o pin), `historico_ideb[] {ano, valor}`.
+Registro de escola (tipos em `web/src/types` e `api/src/store.ts`):
+identidade (`id_escola` INEP, `nome`, `municipio`, `cod_municipio`, `estado`, `regiao`,
+`dependencia`, `latitude`, `longitude`) + `etapas: EtapaKey[]` + `indicadores` **por etapa**:
+`{ ideb, taxa_aprovacao, nota_saeb, historico_ideb[] }`. Uma escola pode ter as 3 etapas.
 
-> Evasão e alfabetização **não** estão no arquivo do IDEB do ensino médio — por isso o
-> projeto usa **aprovação** e **SAEB** como indicadores reais. Não inventar evasão.
+A API **projeta** a escola para uma etapa (`?etapa=anos_iniciais|anos_finais|medio`,
+padrão `anos_iniciais`) nas listas/mapa/indicadores; `/api/escolas/:id` devolve o registro
+completo. O frontend tem um **seletor global de etapa** (`web/src/lib/etapa.tsx`).
+
+> Evasão e alfabetização **não** estão nos arquivos do IDEB — por isso o projeto usa
+> **aprovação** e **SAEB** como indicadores reais. Não inventar evasão.
 
 ## Regras ao mexer nos dados
 

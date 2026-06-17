@@ -1,6 +1,8 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { cx } from '../lib/utils';
 import { usuarioAtual } from '../data/mock';
+import { useEtapa } from '../lib/etapa';
+import { ETAPAS } from '../types';
 
 interface NavItem {
   to: string;
@@ -57,6 +59,28 @@ function NavSection({ items }: { items: NavItem[] }) {
         </NavLink>
       ))}
     </nav>
+  );
+}
+
+/** Seletor global de etapa do IDEB — dirige as consultas de todas as telas. */
+function EtapaSelector() {
+  const { etapa, setEtapa } = useEtapa();
+  return (
+    <div className="hidden sm:flex items-center rounded-full bg-brand-50 p-1">
+      {ETAPAS.map((e) => (
+        <button
+          key={e.key}
+          onClick={() => setEtapa(e.key)}
+          title={e.label}
+          className={cx(
+            'rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
+            etapa === e.key ? 'bg-brand-500 text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+          )}
+        >
+          {e.curto}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -118,13 +142,7 @@ export default function Layout() {
             <h1 className="text-lg font-semibold text-ink">{titulo}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 rounded-full bg-brand-50 px-3.5 py-2 text-sm text-ink-soft w-72">
-              <span>🔍</span>
-              <input
-                className="bg-transparent outline-none flex-1 placeholder:text-ink-faint"
-                placeholder="Buscar escola, município..."
-              />
-            </div>
+            <EtapaSelector />
             <button className="relative h-10 w-10 rounded-xl bg-brand-50 hover:bg-brand-100 grid place-items-center text-lg transition-colors">
               🔔
               <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-peach-500" />

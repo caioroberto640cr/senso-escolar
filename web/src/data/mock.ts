@@ -28,9 +28,9 @@ export const usuarioAtual: Usuario = {
 
 // Fontes de dados — status das integrações (reflete as fontes reais usadas)
 export const fontes = [
+  { nome: 'INEP — IDEB 2023 (Anos Iniciais)', status: 'conectado', ultima: '2024-09-01', registros: '41.295 escolas' },
+  { nome: 'INEP — IDEB 2023 (Anos Finais)', status: 'conectado', ultima: '2024-09-01', registros: '31.092 escolas' },
   { nome: 'INEP — IDEB 2023 (Ensino Médio)', status: 'conectado', ultima: '2024-09-01', registros: '14.457 escolas' },
-  { nome: 'INEP — IDEB por município', status: 'conectado', ultima: '2024-09-01', registros: '5.5 mil municípios' },
   { nome: 'IBGE — Localidades (API)', status: 'conectado', ultima: 'tempo real', registros: '27 UFs · 5.570 municípios' },
-  { nome: 'INEP — IDEB Anos Iniciais/Finais', status: 'sincronizando', ultima: '2024-09-01', registros: 'pendente ETL' },
   { nome: 'SAEB — Microdados', status: 'erro', ultima: '—', registros: '—' },
 ];

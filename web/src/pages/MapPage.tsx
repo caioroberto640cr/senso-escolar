@@ -3,6 +3,7 @@ import { Card } from '../components/ui/Card';
 import { SchoolMap } from '../components/SchoolMap';
 import { Loading } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
+import { useEtapa } from '../lib/etapa';
 import { UFS, REGIOES } from '../data/mock';
 import { cx } from '../lib/utils';
 
@@ -29,9 +30,10 @@ export default function MapPage() {
   const [dep, setDep] = useState('todas');
   const [desempenho, setDesempenho] = useState<Desempenho>('todos');
 
+  const { etapa } = useEtapa();
   const { data, loading } = useFetch(
-    () => api.mapa({ uf, regiao, dependencia: dep, desempenho }),
-    [uf, regiao, dep, desempenho]
+    () => api.mapa({ etapa, uf, regiao, dependencia: dep, desempenho }),
+    [etapa, uf, regiao, dep, desempenho]
   );
 
   return (
@@ -133,7 +135,7 @@ export default function MapPage() {
           </div>
         </div>
         {data && data.itens.length > 0 ? (
-          <SchoolMap key={`${uf}-${regiao}-${dep}-${desempenho}`} escolas={data.itens} />
+          <SchoolMap key={`${etapa}-${uf}-${regiao}-${dep}-${desempenho}`} escolas={data.itens} />
         ) : (
           <Loading label={loading ? 'Carregando escolas...' : 'Nenhuma escola para o filtro'} />
         )}

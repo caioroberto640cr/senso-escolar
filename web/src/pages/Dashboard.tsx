@@ -16,6 +16,8 @@ import { Badge } from '../components/ui/Badge';
 import { SchoolMap } from '../components/SchoolMap';
 import { Loading, ErrorState } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
+import { useEtapa } from '../lib/etapa';
+import { etapaLabel } from '../types';
 import { formatData } from '../lib/utils';
 
 const tooltipStyle = {
@@ -26,9 +28,10 @@ const tooltipStyle = {
 };
 
 export default function Dashboard() {
-  const nac = useFetch(() => api.indicadoresNacionais(), []);
-  const reg = useFetch(() => api.indicadoresRegioes(), []);
-  const mapa = useFetch(() => api.mapa({ limit: 900 }), []);
+  const { etapa } = useEtapa();
+  const nac = useFetch(() => api.indicadoresNacionais(etapa), [etapa]);
+  const reg = useFetch(() => api.indicadoresRegioes(etapa), [etapa]);
+  const mapa = useFetch(() => api.mapa({ etapa, limit: 900 }), [etapa]);
   const alertas = useFetch(() => api.alertas(), []);
 
   const sevTone = { critico: 'peach', atencao: 'sun', info: 'sky' } as const;
@@ -45,7 +48,7 @@ export default function Dashboard() {
           </Card>
         ) : (
           <>
-            <MetricCard label="IDEB Nacional · EM" value={nac.data.ideb.toFixed(2)} icon="🎓" tone="brand" />
+            <MetricCard label={`IDEB Nacional · ${etapaLabel(etapa)}`} value={nac.data.ideb.toFixed(2)} icon="🎓" tone="brand" />
             <MetricCard label="Taxa de Aprovação" value={nac.data.taxa_aprovacao} unit="%" icon="✅" tone="mint" />
             <MetricCard label="Nota Média SAEB" value={nac.data.nota_saeb} icon="📖" tone="sky" />
             <MetricCard label="Escolas (reais)" value={nac.data.escolas.toLocaleString('pt-BR')} icon="🏫" tone="peach" />
@@ -56,7 +59,7 @@ export default function Dashboard() {
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <SectionTitle title="Evolução do IDEB nacional" subtitle="Ensino Médio · média real das escolas" />
+          <SectionTitle title="Evolução do IDEB nacional" subtitle={`${etapaLabel(etapa)} · média real das escolas`} />
           {nac.data ? (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={nac.data.historico_ideb} margin={{ left: -16, right: 8, top: 8 }}>
