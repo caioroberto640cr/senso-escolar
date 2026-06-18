@@ -13,12 +13,18 @@ import Fontes from './pages/Fontes';
 import Configuracoes from './pages/Configuracoes';
 import Login from './pages/Login';
 import { useAuth } from './lib/auth';
+import { Loading } from './components/ui/State';
 
 /** Exige usuário logado; senão manda para /login guardando a origem. */
 function RequireAuth({ children, adminOnly = false }: { children: ReactNode; adminOnly?: boolean }) {
   const { user, carregando, isAdmin } = useAuth();
   const location = useLocation();
-  if (carregando) return null;
+  if (carregando)
+    return (
+      <div className="min-h-screen grid place-items-center">
+        <Loading label="Carregando..." />
+      </div>
+    );
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   if (adminOnly && !isAdmin)
     return (
@@ -36,7 +42,13 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route element={<Layout />}>
+        <Route
+          element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }
+        >
           <Route path="/" element={<Dashboard />} />
           <Route path="/mapa" element={<MapPage />} />
           <Route path="/escolas" element={<Schools />} />

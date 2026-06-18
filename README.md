@@ -71,8 +71,8 @@ GET/PATCH/DELETE /api/usuarios         gestão de usuários (somente admin)
 ## Contas de usuário (cadastro/login)
 
 Autenticação real com **Postgres (Neon)** + senha com **hash (bcrypt)** e **JWT**.
-Os indicadores do INEP seguem públicos; login só é exigido para áreas de conta
-(Configurações e Gestão de Usuários, que é exclusiva de **admin**).
+A aplicação **abre na tela de login**: é preciso entrar ou criar conta para acessar
+qualquer página. A Gestão de Usuários é exclusiva de **admin** (o 1º cadastro vira admin).
 
 **Configurar (grátis):**
 1. Crie um projeto em [neon.tech](https://neon.tech) e copie a *connection string*.
@@ -80,8 +80,8 @@ Os indicadores do INEP seguem públicos; login só é exigido para áreas de con
 3. Produção (Render): em *Environment*, defina `DATABASE_URL` (o `JWT_SECRET` o Render gera).
 4. Suba a API — a tabela `usuarios` é criada sozinha. **O primeiro cadastro vira admin.**
 
-> Sem `DATABASE_URL` o app continua servindo os dados do INEP; só o cadastro/login fica
-> indisponível (resposta 503), sem quebrar o site.
+> Como a app abre no login, o `DATABASE_URL` é **necessário** para usá-la (sem ele o
+> cadastro/login responde 503). Em produção, o `DATABASE_URL` já está configurado no Render.
 
 ## Sistema Web
 

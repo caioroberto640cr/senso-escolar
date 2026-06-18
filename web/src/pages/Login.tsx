@@ -155,7 +155,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-xs text-ink-faint mt-4">
-          <Link to="/" className="text-brand-600 font-medium">← Voltar para o painel público</Link>
+          Entre ou crie sua conta para explorar os indicadores educacionais.
         </p>
       </div>
     </div>
