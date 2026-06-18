@@ -1,3 +1,4 @@
+import './env.ts'; // carrega .env ANTES de qualquer módulo que leia process.env
 import express from 'express';
 import cors from 'cors';
 import { existsSync } from 'node:fs';
@@ -8,6 +9,11 @@ import {
   projetar, resolverEtapa, type EscolaProjetada,
 } from './store.ts';
 import * as ibge from './ibge.ts';
+import { initSchema, dbReady } from './db.ts';
+import {
+  registrar, entrar, eu, autenticar, exigirAdmin,
+  listarUsuarios, atualizarUsuario, removerUsuario,
+} from './auth.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -119,6 +125,17 @@ app.get('/api/escolas/:id', (req, res) => {
   res.json(e);
 });
 
+// ---------- Autenticação (cadastro/login reais — Postgres/Neon) ----------
+app.get('/api/auth/status', (_req, res) => res.json({ disponivel: dbReady }));
+app.post('/api/auth/register', registrar);
+app.post('/api/auth/login', entrar);
+app.get('/api/auth/me', autenticar, eu);
+
+// ---------- Gestão de usuários (somente admin) ----------
+app.get('/api/usuarios', autenticar, exigirAdmin, listarUsuarios);
+app.patch('/api/usuarios/:id', autenticar, exigirAdmin, atualizarUsuario);
+app.delete('/api/usuarios/:id', autenticar, exigirAdmin, removerUsuario);
+
 // ---------- Geografia (IBGE ao vivo) ----------
 app.get('/api/geografia/estados', async (_req, res) => {
   try { res.json(await ibge.estados()); }
@@ -143,6 +160,8 @@ if (existsSync(webDist)) {
   });
   console.log('🌐 Servindo site estático de web/dist');
 }
+
+initSchema().catch((e) => console.error('Falha ao iniciar schema:', e.message));
 
 app.listen(PORT, () => {
   console.log(`\n🚀 EduInsight em http://localhost:${PORT}`);

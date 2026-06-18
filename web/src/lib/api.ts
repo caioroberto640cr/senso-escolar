@@ -1,11 +1,52 @@
 import { useEffect, useState } from 'react';
 import type { EscolaProjetada, EscolaCompleta, EscolaMapa, EtapaKey } from '../types';
 
+// ---------- Conta autenticada ----------
+export interface Conta {
+  id: number;
+  nome: string;
+  email: string;
+  perfil: string;
+  ativo: boolean;
+  criado_em?: string;
+}
+export interface AuthResp {
+  token: string;
+  usuario: Conta;
+}
+
 const BASE = '/api';
+export const TOKEN_KEY = 'eduinsight.token';
+
+function authHeaders(): Record<string, string> {
+  const t = localStorage.getItem(TOKEN_KEY);
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
+/** Lê a mensagem de erro do corpo JSON, quando houver. */
+async function erroDe(res: Response, path: string): Promise<Error> {
+  try {
+    const j = await res.json();
+    if (j?.erro) return new Error(j.erro);
+  } catch {
+    /* corpo não-JSON */
+  }
+  return new Error(`API ${res.status} em ${path}`);
+}
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`);
-  if (!res.ok) throw new Error(`API ${res.status} em ${path}`);
+  const res = await fetch(`${BASE}${path}`, { headers: { ...authHeaders() } });
+  if (!res.ok) throw await erroDe(res, path);
+  return res.json() as Promise<T>;
+}
+
+async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: body != null ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw await erroDe(res, path);
   return res.json() as Promise<T>;
 }
 
@@ -92,6 +133,19 @@ export const api = {
   },
   escola: (id: string) => get<EscolaCompleta>(`/escolas/${id}`),
   estados: () => get<EstadoIBGE[]>('/geografia/estados'),
+
+  // ---------- Autenticação ----------
+  authStatus: () => get<{ disponivel: boolean }>('/auth/status'),
+  registrar: (dados: { nome: string; email: string; senha: string; perfil?: string }) =>
+    send<AuthResp>('POST', '/auth/register', dados),
+  login: (email: string, senha: string) => send<AuthResp>('POST', '/auth/login', { email, senha }),
+  me: () => get<{ usuario: Conta }>('/auth/me'),
+
+  // ---------- Gestão de usuários (admin) ----------
+  usuarios: () => get<Conta[]>('/usuarios'),
+  atualizarUsuario: (id: number, dados: { perfil?: string; ativo?: boolean }) =>
+    send<Conta>('PATCH', `/usuarios/${id}`, dados),
+  removerUsuario: (id: number) => send<{ ok: true }>('DELETE', `/usuarios/${id}`),
 };
 
 // ---------- Hook genérico ----------

@@ -19,7 +19,10 @@ App publicada no Render (repo `caioroberto640cr/senso-escolar`).
    logado, status de fontes) — nunca indicadores.
 3. **Cor primária: verde chapado `#2f8f43`** (ramo `brand`, tokens `@theme` em
    `web/src/index.css`). Sem lavanda/roxo, sem neon, sem gradiente pesado.
-4. **Não há banco SQL.** A "fonte da verdade" é o JSON do ETL.
+4. **Indicadores do INEP**: sem banco SQL — a "fonte da verdade" é o JSON do ETL.
+   **Contas de usuário** (cadastro/login): ficam em **Postgres (Neon)** via `api/src/db.ts`
+   + `auth.ts` (hash bcrypt + JWT). Variáveis: `DATABASE_URL`, `JWT_SECRET` (ver
+   `api/.env.example`); sem `DATABASE_URL` o login degrada com 503 e o resto segue normal.
 5. Textos da UI e nomes/comentários **em português**.
 
 ## Onde colocar

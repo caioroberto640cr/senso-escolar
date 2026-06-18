@@ -64,7 +64,24 @@ GET /api/escolas/mapa?uf=&desempenho= dados enxutos p/ o mapa (amostra/cap)
 GET /api/escolas/:id                  detalhe de uma escola (código INEP)
 GET /api/alertas                      alertas derivados
 GET /api/geografia/estados            IBGE ao vivo (cache 12h)
+POST /api/auth/register · /api/auth/login · GET /api/auth/me   (cadastro/login)
+GET/PATCH/DELETE /api/usuarios         gestão de usuários (somente admin)
 ```
+
+## Contas de usuário (cadastro/login)
+
+Autenticação real com **Postgres (Neon)** + senha com **hash (bcrypt)** e **JWT**.
+Os indicadores do INEP seguem públicos; login só é exigido para áreas de conta
+(Configurações e Gestão de Usuários, que é exclusiva de **admin**).
+
+**Configurar (grátis):**
+1. Crie um projeto em [neon.tech](https://neon.tech) e copie a *connection string*.
+2. Local: copie `api/.env.example` para `api/.env` e preencha `DATABASE_URL` e `JWT_SECRET`.
+3. Produção (Render): em *Environment*, defina `DATABASE_URL` (o `JWT_SECRET` o Render gera).
+4. Suba a API — a tabela `usuarios` é criada sozinha. **O primeiro cadastro vira admin.**
+
+> Sem `DATABASE_URL` o app continua servindo os dados do INEP; só o cadastro/login fica
+> indisponível (resposta 503), sem quebrar o site.
 
 ## Sistema Web
 

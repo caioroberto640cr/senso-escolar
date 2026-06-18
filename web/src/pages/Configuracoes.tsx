@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, SectionTitle } from '../components/ui/Card';
-import { usuarioAtual } from '../data/mock';
+import { useAuth } from '../lib/auth';
 import { cx } from '../lib/utils';
 
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
@@ -23,8 +23,11 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
 }
 
 export default function Configuracoes() {
-  const [prefs, setPrefs] = useState(usuarioAtual.preferencias_notificacao);
+  const { user } = useAuth();
+  const [prefs, setPrefs] = useState({ quedaDesempenho: true, aumentoEvasao: true, resumoSemanal: false });
   const [seg, setSeg] = useState({ doisFatores: true, sessaoUnica: false });
+
+  if (!user) return null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl">
@@ -33,22 +36,22 @@ export default function Configuracoes() {
         <SectionTitle title="Perfil" subtitle="Dados da conta" />
         <div className="flex items-center gap-4 mb-5">
           <div className="h-16 w-16 rounded-full bg-brand-200 text-brand-600 grid place-items-center text-xl font-semibold">
-            {usuarioAtual.nome.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+            {user.nome.split(' ').map((n) => n[0]).slice(0, 2).join('')}
           </div>
           <div>
-            <p className="font-semibold text-ink">{usuarioAtual.nome}</p>
-            <p className="text-sm text-ink-soft">{usuarioAtual.email}</p>
-            <p className="text-xs text-ink-faint capitalize mt-0.5">Perfil: {usuarioAtual.perfil}</p>
+            <p className="font-semibold text-ink">{user.nome}</p>
+            <p className="text-sm text-ink-soft">{user.email}</p>
+            <p className="text-xs text-ink-faint capitalize mt-0.5">Perfil: {user.perfil}</p>
           </div>
         </div>
         <label className="block text-xs font-semibold text-ink-soft mb-1.5">Nome</label>
         <input
-          defaultValue={usuarioAtual.nome}
+          defaultValue={user.nome}
           className="w-full rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-sm mb-4 outline-none focus:border-brand-300"
         />
         <label className="block text-xs font-semibold text-ink-soft mb-1.5">E-mail</label>
         <input
-          defaultValue={usuarioAtual.email}
+          defaultValue={user.email}
           className="w-full rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-sm mb-5 outline-none focus:border-brand-300"
         />
         <button className="rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors">
