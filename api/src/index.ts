@@ -149,22 +149,33 @@ app.get('/api/escolas', (req, res) => {
   res.json({ total: filtradas.length, limit, offset, itens: filtradas.slice(offset, offset + limit) });
 });
 
-// ---------- Escolas: dados para o mapa (payload enxuto + cap/amostra) ----------
+// ---------- Escolas: dados para o mapa (por área visível + cap/amostra) ----------
 app.get('/api/escolas/mapa', (req, res) => {
-  const filtradas = projetadasFiltradas(req.query);
+  const todas = projetadasFiltradas(req.query); // casam com os filtros (sem recorte espacial)
+
+  // bbox = oeste,sul,leste,norte (lng/lat) — carrega só a área visível do mapa
+  const bb = String(req.query.bbox ?? '').split(',').map(Number);
+  const temBbox = bb.length === 4 && bb.every((n) => !Number.isNaN(n));
+  let naArea = todas;
+  if (temBbox) {
+    const [w, s, e, n] = bb;
+    naArea = todas.filter((x) => x.longitude >= w && x.longitude <= e && x.latitude >= s && x.latitude <= n);
+  }
+
   const temFiltroLocal =
     (req.query.uf && req.query.uf !== 'todas') || (req.query.regiao && req.query.regiao !== 'todas');
-  const cap = temFiltroLocal ? 4000 : Number(req.query.limit) || 1500;
+  const cap = temBbox ? 3000 : temFiltroLocal ? 4000 : Number(req.query.limit) || 1500;
 
-  let lista = filtradas;
+  let lista = naArea;
   let amostrado = false;
-  if (filtradas.length > cap) {
-    const passo = filtradas.length / cap;
-    lista = Array.from({ length: cap }, (_, i) => filtradas[Math.floor(i * passo)]);
+  if (naArea.length > cap) {
+    const passo = naArea.length / cap;
+    lista = Array.from({ length: cap }, (_, i) => naArea[Math.floor(i * passo)]);
     amostrado = true;
   }
   res.json({
-    total: filtradas.length,
+    total: todas.length,
+    na_area: naArea.length,
     exibidas: lista.length,
     amostrado,
     itens: lista.map((e) => ({

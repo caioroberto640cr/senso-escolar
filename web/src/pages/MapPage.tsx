@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { SchoolMap } from '../components/SchoolMap';
-import { Loading } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
 import { UFS, REGIOES } from '../data/mock';
@@ -39,11 +38,12 @@ export default function MapPage() {
   const [localizacao, setLocalizacao] = useState('todas');
   const [recorte, setRecorte] = useState('todas');
   const [infra, setInfra] = useState<string[]>([]);
+  const [bbox, setBbox] = useState<string | undefined>(undefined);
 
   const { etapa } = useEtapa();
   const { data, loading } = useFetch(
-    () => api.mapa({ etapa, uf, regiao, dependencia: dep, desempenho, localizacao, recorte, infra: infra.join(',') }),
-    [etapa, uf, regiao, dep, desempenho, localizacao, recorte, infra]
+    () => api.mapa({ etapa, uf, regiao, dependencia: dep, desempenho, localizacao, recorte, infra: infra.join(','), bbox }),
+    [etapa, uf, regiao, dep, desempenho, localizacao, recorte, infra, bbox]
   );
 
   const toggleInfra = (v: string) =>
@@ -57,18 +57,19 @@ export default function MapPage() {
         <p className="text-sm text-ink-soft mb-1">
           {data ? (
             <>
-              {data.exibidas.toLocaleString('pt-BR')}
-              {data.amostrado && ` de ${data.total.toLocaleString('pt-BR')}`} escolas
+              <strong className="text-ink">{data.exibidas.toLocaleString('pt-BR')}</strong> na área
+              {' · '}
+              {data.total.toLocaleString('pt-BR')} no total
             </>
           ) : (
             '...'
           )}
         </p>
-        {data?.amostrado && (
-          <p className="text-[11px] text-ink-faint mb-4">
-            Amostra exibida. Filtre por estado para ver todas.
-          </p>
-        )}
+        <p className="text-[11px] text-ink-faint mb-4">
+          {data?.amostrado
+            ? 'Muitas escolas nesta área — dê mais zoom para ver todas.'
+            : 'Dê zoom no mapa para carregar as escolas da região.'}
+        </p>
 
         <label className="block text-xs font-semibold text-ink-soft mb-1.5 mt-2">Região</label>
         <select
@@ -186,10 +187,16 @@ export default function MapPage() {
             <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-peach-500" /> Crítico</span>
           </div>
         </div>
-        {data && data.itens.length > 0 ? (
-          <SchoolMap key={`${etapa}-${uf}-${regiao}-${dep}-${desempenho}-${localizacao}-${recorte}-${infra.join('')}`} escolas={data.itens} />
-        ) : (
-          <Loading label={loading ? 'Carregando escolas...' : 'Nenhuma escola para o filtro'} />
+        <SchoolMap
+          escolas={data?.itens ?? []}
+          onViewport={(b) => setBbox(`${b.oeste},${b.sul},${b.leste},${b.norte}`)}
+        />
+        {data && data.itens.length === 0 && (
+          <div className="absolute z-[500] inset-x-0 top-1/2 -translate-y-1/2 text-center pointer-events-none">
+            <span className="inline-block rounded-xl bg-surface/90 backdrop-blur px-4 py-2 text-sm text-ink-soft shadow-sm border border-line">
+              {loading ? 'Carregando…' : 'Nenhuma escola nesta área/filtro — afaste o zoom.'}
+            </span>
+          </div>
         )}
       </Card>
     </div>

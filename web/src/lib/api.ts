@@ -86,6 +86,7 @@ export interface ListaEscolas {
 
 export interface MapaEscolas {
   total: number;
+  na_area?: number;
   exibidas: number;
   amostrado: boolean;
   itens: EscolaMapa[];

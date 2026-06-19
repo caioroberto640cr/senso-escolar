@@ -1,10 +1,12 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { EscolaMapa } from '../types';
 import { scoreTone, dependenciaLabel } from '../lib/utils';
+
+export type Bbox = { oeste: number; sul: number; leste: number; norte: number };
 
 /** Pin pastel circular colorido pelo desempenho da escola. */
 function pinIcon(score: number): L.DivIcon {
@@ -39,16 +41,37 @@ function FitBounds({ escolas }: { escolas: EscolaMapa[] }) {
   return null;
 }
 
+/** Reporta a área visível (debounced) — usado para carregar só as escolas em tela. */
+function ViewportReporter({ onViewport }: { onViewport: (b: Bbox) => void }) {
+  const t = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const emitir = (map: L.Map) => {
+    clearTimeout(t.current);
+    t.current = setTimeout(() => {
+      const b = map.getBounds();
+      onViewport({ oeste: b.getWest(), sul: b.getSouth(), leste: b.getEast(), norte: b.getNorth() });
+    }, 350);
+  };
+  const map = useMapEvents({ moveend: () => emitir(map), zoomend: () => emitir(map) });
+  useEffect(() => {
+    setTimeout(() => { map.invalidateSize(); emitir(map); }, 80);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
 export function SchoolMap({
   escolas,
   className,
   interactive = true,
   cluster = true,
+  onViewport,
 }: {
   escolas: EscolaMapa[];
   className?: string;
   interactive?: boolean;
   cluster?: boolean;
+  /** Se fornecido, o mapa carrega por área visível (não usa auto-zoom). */
+  onViewport?: (b: Bbox) => void;
 }) {
   const navigate = useNavigate();
 
@@ -112,7 +135,7 @@ export function SchoolMap({
         attribution='&copy; OpenStreetMap &copy; CARTO'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
-      <FitBounds escolas={escolas} />
+      {onViewport ? <ViewportReporter onViewport={onViewport} /> : <FitBounds escolas={escolas} />}
       {cluster ? (
         <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>
           {marcadores}
