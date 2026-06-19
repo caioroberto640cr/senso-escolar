@@ -15,6 +15,7 @@ const navPrincipal: NavItem[] = [
   { to: '/mapa', label: 'Mapa de Escolas', icon: '🗺️' },
   { to: '/escolas', label: 'Buscar Escolas', icon: '🔍' },
   { to: '/comparativo', label: 'Análise Comparativa', icon: '⚖️' },
+  { to: '/explorar', label: 'Explorar dados', icon: '🧭' },
   { to: '/relatorios', label: 'Relatórios', icon: '📄' },
   { to: '/alertas', label: 'Alertas', icon: '🔔' },
 ];
@@ -24,6 +25,7 @@ const titulos: Record<string, string> = {
   '/mapa': 'Mapa de Escolas',
   '/escolas': 'Buscar Escolas',
   '/comparativo': 'Análise Comparativa',
+  '/explorar': 'Explorar dados',
   '/relatorios': 'Relatórios e Exportação',
   '/alertas': 'Alertas e Notificações',
   '/usuarios': 'Gestão de Usuários',

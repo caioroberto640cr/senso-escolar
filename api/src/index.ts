@@ -90,6 +90,57 @@ app.get('/api/indicadores/estados', (req, res) => {
 // ---------- Alertas ----------
 app.get('/api/alertas', (_req, res) => res.json(alertas));
 
+// ---------- Decomposição (árvore: nº de escolas / matrículas por dimensões) ----------
+const DEP_LABEL: Record<string, string> = {
+  federal: 'Federal', estadual: 'Estadual', municipal: 'Municipal', privada: 'Privada',
+};
+const DIMENSOES: Record<string, (e: (typeof escolas)[number]) => string> = {
+  regiao: (e) => e.regiao,
+  estado: (e) => e.estado,
+  dependencia: (e) => DEP_LABEL[e.dependencia] ?? e.dependencia,
+  localizacao: (e) => (e.censo?.localizacao === 'rural' ? 'Rural' : e.censo?.localizacao === 'urbana' ? 'Urbana' : 'Não informado'),
+  porte: (e) => e.censo?.porte ?? 'Não informado',
+  recorte: (e) =>
+    e.censo?.recorte === 'indigena' ? 'Indígena'
+    : e.censo?.recorte === 'quilombola' ? 'Quilombola'
+    : e.censo?.recorte === 'assentamento' ? 'Assentamento'
+    : 'Comum',
+};
+const DIMS_VALIDAS = Object.keys(DIMENSOES);
+
+interface NoArvore { nome: string; escolas: number; matriculas: number; filhos?: NoArvore[] }
+
+function construirArvore(arr: (typeof escolas)[number][], dims: string[], prof: number): NoArvore[] {
+  const fn = DIMENSOES[dims[prof]];
+  const grupos = new Map<string, (typeof escolas)[number][]>();
+  for (const e of arr) {
+    const k = fn(e);
+    let g = grupos.get(k); if (!g) { g = []; grupos.set(k, g); }
+    g.push(e);
+  }
+  const nos: NoArvore[] = [];
+  for (const [nome, sub] of grupos) {
+    const matriculas = sub.reduce((s, e) => s + (e.censo?.matriculas ?? 0), 0);
+    nos.push({
+      nome, escolas: sub.length, matriculas,
+      filhos: prof + 1 < dims.length ? construirArvore(sub, dims, prof + 1) : undefined,
+    });
+  }
+  return nos.sort((a, b) => b.escolas - a.escolas);
+}
+
+app.get('/api/decomposicao', (req, res) => {
+  const dims = String(req.query.por ?? 'regiao,dependencia')
+    .split(',').map((d) => d.trim()).filter((d) => DIMS_VALIDAS.includes(d)).slice(0, 4);
+  if (!dims.length) return res.status(400).json({ erro: 'Informe dimensões válidas em ?por=' });
+  res.json({
+    dimensoes: dims,
+    total_escolas: escolas.length,
+    total_matriculas: escolas.reduce((s, e) => s + (e.censo?.matriculas ?? 0), 0),
+    arvore: construirArvore(escolas, dims, 0),
+  });
+});
+
 // ---------- Escolas: lista paginada (por etapa) ----------
 app.get('/api/escolas', (req, res) => {
   const filtradas = ordenar(projetadasFiltradas(req.query), req.query.sort as string);

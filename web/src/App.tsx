@@ -6,6 +6,7 @@ import MapPage from './pages/MapPage';
 import Schools from './pages/Schools';
 import SchoolDetail from './pages/SchoolDetail';
 import Comparativo from './pages/Comparativo';
+import Explorar from './pages/Explorar';
 import Relatorios from './pages/Relatorios';
 import Alertas from './pages/Alertas';
 import Usuarios from './pages/Usuarios';
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/escolas" element={<Schools />} />
           <Route path="/escolas/:id" element={<SchoolDetail />} />
           <Route path="/comparativo" element={<Comparativo />} />
+          <Route path="/explorar" element={<Explorar />} />
           <Route path="/relatorios" element={<Relatorios />} />
           <Route path="/alertas" element={<Alertas />} />
           <Route path="/fontes" element={<Fontes />} />

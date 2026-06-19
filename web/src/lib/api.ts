@@ -107,6 +107,19 @@ export interface EstadoIBGE {
   regiao: string;
 }
 
+export interface NoArvore {
+  nome: string;
+  escolas: number;
+  matriculas: number;
+  filhos?: NoArvore[];
+}
+export interface Decomposicao {
+  dimensoes: string[];
+  total_escolas: number;
+  total_matriculas: number;
+  arvore: NoArvore[];
+}
+
 // ---------- Funções ----------
 export const api = {
   meta: () => get<Meta>('/meta'),
@@ -133,6 +146,7 @@ export const api = {
   },
   escola: (id: string) => get<EscolaCompleta>(`/escolas/${id}`),
   estados: () => get<EstadoIBGE[]>('/geografia/estados'),
+  decomposicao: (por: string[]) => get<Decomposicao>(`/decomposicao?por=${por.join(',')}`),
 
   // ---------- Autenticação ----------
   authStatus: () => get<{ disponivel: boolean }>('/auth/status'),
