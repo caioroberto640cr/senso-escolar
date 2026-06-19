@@ -37,6 +37,18 @@ export interface IndicadorEtapa {
   taxa_aprovacao: number | null;
   nota_saeb: number | null;
   historico_ideb: PontoHistorico[];
+  abandono?: number | null;
+  reprovacao?: number | null;
+  distorcao?: number | null;
+}
+
+/** Dados do Censo Escolar (nível escola). */
+export interface Censo {
+  matriculas: number | null;
+  porte: string | null;
+  localizacao: string | null; // urbana | rural
+  recorte: string | null; // indigena | quilombola | assentamento
+  infra: Record<string, boolean>;
 }
 
 /** Escola "achatada" para uma etapa — usada em listas e mapa. */
@@ -53,8 +65,11 @@ export interface EscolaProjetada {
   ideb: number;
   taxa_aprovacao: number | null;
   nota_saeb: number | null;
+  abandono: number | null;
+  distorcao: number | null;
   score_geral: number; // = IDEB da etapa, usado para colorir o pin
   historico_ideb: PontoHistorico[];
+  censo?: Censo;
 }
 
 /** Registro completo da escola (todas as etapas) — usado no detalhe. */
@@ -70,7 +85,21 @@ export interface EscolaCompleta {
   latitude: number;
   longitude: number;
   indicadores: Partial<Record<EtapaKey, IndicadorEtapa>>;
+  censo?: Censo;
 }
+
+/** Itens de infraestrutura para exibição (rótulo + ícone). */
+export const INFRA_ITENS: { key: string; label: string; icon: string }[] = [
+  { key: 'internet', label: 'Internet', icon: '🌐' },
+  { key: 'internet_alunos', label: 'Internet p/ alunos', icon: '📶' },
+  { key: 'lab_informatica', label: 'Lab. de informática', icon: '💻' },
+  { key: 'lab_ciencias', label: 'Lab. de ciências', icon: '🔬' },
+  { key: 'biblioteca', label: 'Biblioteca', icon: '📚' },
+  { key: 'quadra', label: 'Quadra de esportes', icon: '🏀' },
+  { key: 'auditorio', label: 'Auditório', icon: '🎭' },
+  { key: 'banheiro_acessivel', label: 'Banheiro acessível', icon: '♿' },
+  { key: 'agua_potavel', label: 'Água potável', icon: '🚰' },
+];
 
 /** Versão enxuta usada no mapa (subset da projetada). */
 export interface EscolaMapa {
@@ -84,6 +113,7 @@ export interface EscolaMapa {
   ideb: number;
   taxa_aprovacao: number | null;
   nota_saeb: number | null;
+  abandono?: number | null;
   score_geral: number;
 }
 

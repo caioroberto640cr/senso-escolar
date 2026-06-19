@@ -38,6 +38,10 @@ function projetadasFiltradas(q: Record<string, any>): EscolaProjetada[] {
   const dep = q.dependencia && q.dependencia !== 'todas' ? String(q.dependencia) : null;
   const desempenho = q.desempenho && q.desempenho !== 'todos' ? String(q.desempenho) : null;
   const termo = q.q ? String(q.q).trim().toLowerCase() : null;
+  // novos filtros (Censo)
+  const localizacao = q.localizacao && q.localizacao !== 'todas' ? String(q.localizacao) : null;
+  const recorte = q.recorte && q.recorte !== 'todas' ? String(q.recorte) : null;
+  const infra = q.infra ? String(q.infra).split(',').filter(Boolean) : [];
 
   const out: EscolaProjetada[] = [];
   for (const e of escolas) {
@@ -46,6 +50,9 @@ function projetadasFiltradas(q: Record<string, any>): EscolaProjetada[] {
     if (dep && e.dependencia !== dep) continue;
     if (termo && !e.nome.toLowerCase().includes(termo) && !e.municipio.toLowerCase().includes(termo))
       continue;
+    if (localizacao && e.censo?.localizacao !== localizacao) continue;
+    if (recorte && e.censo?.recorte !== recorte) continue;
+    if (infra.length && !infra.every((f) => e.censo?.infra?.[f])) continue;
     const p = projetar(e, etapa);
     if (!p) continue; // não tem essa etapa
     if (desempenho && classifica(p) !== desempenho) continue;
@@ -113,7 +120,7 @@ app.get('/api/escolas/mapa', (req, res) => {
       id_escola: e.id_escola, nome: e.nome, municipio: e.municipio, estado: e.estado,
       dependencia: e.dependencia, latitude: e.latitude, longitude: e.longitude,
       ideb: e.ideb, taxa_aprovacao: e.taxa_aprovacao, nota_saeb: e.nota_saeb,
-      score_geral: e.score_geral,
+      abandono: e.abandono, score_geral: e.score_geral,
     })),
   });
 });

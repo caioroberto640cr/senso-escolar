@@ -15,10 +15,24 @@ O ETL fica em `api/scripts/etl.ts` e roda com `npm run etl` (dentro de `api/`).
   onde `<etapa>` ∈ `anos_iniciais` | `anos_finais` | `ensino_medio`. Cada zip contém um
   **.xlsx**. As **3 etapas** estão carregadas (AI 41.295 · AF 31.092 · EM 14.457;
   64.479 escolas únicas, IDEB 2023).
+- **Taxas de Rendimento por escola** — `.../informacoes_estatisticas/indicadores_educacionais/2023/tx_rend_escolas_2023.zip`.
+  Junta por `CO_ENTIDADE`. Prefixos: `1_`=aprovação, `2_`=reprovação, `3_`=**abandono** (evasão);
+  sufixos `_CAT_FUN_AI`, `_CAT_FUN_AF`, `_CAT_MED` (= anos iniciais/finais/médio).
+- **Distorção idade-série (TDI) por escola** — `.../indicadores_educacionais/2023/TDI_2023_ESCOLAS.zip`.
+  Junta por `CO_ENTIDADE`. Colunas `FUN_AI_CAT_0`, `FUN_AF_CAT_0`, `MED_CAT_0`.
+- **Censo Escolar (cadastro de escolas)** — `https://download.inep.gov.br/dados_abertos/microdados_censo_escolar_2023.zip`
+  → `dados/microdados_ed_basica_2023.csv` (**200 MB**, latin1, separador `;`, **processar por streaming**).
+  Junta por `CO_ENTIDADE`. Colunas: `IN_INTERNET(_ALUNOS)`, `IN_LABORATORIO_INFORMATICA/CIENCIAS`,
+  `IN_BIBLIOTECA(_SALA_LEITURA)`, `IN_QUADRA_ESPORTES`, `IN_AUDITORIO`, `IN_BANHEIRO_PNE` (acessível),
+  `IN_AGUA_POTAVEL`, `QT_MAT_BAS` (matrículas/porte), `TP_LOCALIZACAO` (1=urbana,2=rural),
+  `TP_LOCALIZACAO_DIFERENCIADA` (1=assentamento,2=indígena,3=quilombo).
 - **Coordenadas de municípios** — dataset `municipios-brasileiros` (derivado do IBGE):
   `codigo_ibge, latitude, longitude`. Usado como **centroide do município**.
 - **Geografia ao vivo** — API do IBGE `servicodados.ibge.gov.br/api/v1/localidades`
   (estados, regiões, municípios), com cache de 12h em `api/src/ibge.ts`.
+
+> O ETL roda com `npm run etl` (script usa `--max-old-space-size=4096` pelo Censo). Valor ausente
+> nos indicadores = `"-"` ou `"--"` → `null`. Cobertura: 100% das 64.479 escolas casaram nas 3 fontes.
 
 ## Estrutura do .xlsx do IDEB (importante)
 

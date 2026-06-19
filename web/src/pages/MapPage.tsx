@@ -24,17 +24,30 @@ const desempenhos: { v: Desempenho; label: string; dot: string }[] = [
   { v: 'critico', label: 'Crítico', dot: 'bg-peach-500' },
 ];
 
+const INFRA_FILTROS = [
+  { v: 'internet', label: '🌐 Internet' },
+  { v: 'lab_ciencias', label: '🔬 Lab. ciências' },
+  { v: 'biblioteca', label: '📚 Biblioteca' },
+  { v: 'banheiro_acessivel', label: '♿ Acessível' },
+];
+
 export default function MapPage() {
   const [uf, setUf] = useState('todas');
   const [regiao, setRegiao] = useState('todas');
   const [dep, setDep] = useState('todas');
   const [desempenho, setDesempenho] = useState<Desempenho>('todos');
+  const [localizacao, setLocalizacao] = useState('todas');
+  const [recorte, setRecorte] = useState('todas');
+  const [infra, setInfra] = useState<string[]>([]);
 
   const { etapa } = useEtapa();
   const { data, loading } = useFetch(
-    () => api.mapa({ etapa, uf, regiao, dependencia: dep, desempenho }),
-    [etapa, uf, regiao, dep, desempenho]
+    () => api.mapa({ etapa, uf, regiao, dependencia: dep, desempenho, localizacao, recorte, infra: infra.join(',') }),
+    [etapa, uf, regiao, dep, desempenho, localizacao, recorte, infra]
   );
+
+  const toggleInfra = (v: string) =>
+    setInfra((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 h-[calc(100vh-7rem)]">
@@ -114,9 +127,48 @@ export default function MapPage() {
           ))}
         </div>
 
+        <label className="block text-xs font-semibold text-ink-soft mb-1.5">Localização</label>
+        <select
+          value={localizacao}
+          onChange={(e) => setLocalizacao(e.target.value)}
+          className="w-full rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm mb-4 outline-none focus:border-brand-300"
+        >
+          <option value="todas">Todas</option>
+          <option value="urbana">Urbana</option>
+          <option value="rural">Rural</option>
+        </select>
+
+        <label className="block text-xs font-semibold text-ink-soft mb-1.5">Recorte</label>
+        <select
+          value={recorte}
+          onChange={(e) => setRecorte(e.target.value)}
+          className="w-full rounded-xl border border-line bg-surface-2 px-3 py-2 text-sm mb-4 outline-none focus:border-brand-300"
+        >
+          <option value="todas">Todos</option>
+          <option value="indigena">Escola indígena</option>
+          <option value="quilombola">Comunidade quilombola</option>
+        </select>
+
+        <label className="block text-xs font-semibold text-ink-soft mb-1.5">Infraestrutura</label>
+        <div className="flex flex-wrap gap-1.5 mb-5">
+          {INFRA_FILTROS.map((f) => (
+            <button
+              key={f.v}
+              onClick={() => toggleInfra(f.v)}
+              className={cx(
+                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                infra.includes(f.v) ? 'bg-brand-500 text-white' : 'bg-brand-50 text-ink-soft hover:bg-brand-100'
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         <button
           onClick={() => {
             setUf('todas'); setRegiao('todas'); setDep('todas'); setDesempenho('todos');
+            setLocalizacao('todas'); setRecorte('todas'); setInfra([]);
           }}
           className="mt-auto rounded-xl border border-line py-2 text-sm font-medium text-ink-soft hover:bg-brand-50 transition-colors"
         >
@@ -135,7 +187,7 @@ export default function MapPage() {
           </div>
         </div>
         {data && data.itens.length > 0 ? (
-          <SchoolMap key={`${etapa}-${uf}-${regiao}-${dep}-${desempenho}`} escolas={data.itens} />
+          <SchoolMap key={`${etapa}-${uf}-${regiao}-${dep}-${desempenho}-${localizacao}-${recorte}-${infra.join('')}`} escolas={data.itens} />
         ) : (
           <Loading label={loading ? 'Carregando escolas...' : 'Nenhuma escola para o filtro'} />
         )}

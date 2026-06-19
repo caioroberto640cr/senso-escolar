@@ -26,7 +26,10 @@ Os dados **não são fictícios**. A API serve:
 | Dado | Fonte real | Como |
 |------|-----------|------|
 | Escolas + IDEB 2023 (3 etapas) | **INEP** | ETL dos arquivos oficiais de Anos Iniciais, Anos Finais e Ensino Médio → **64.479 escolas reais** (41.295 + 31.092 + 14.457) |
-| Taxa de aprovação e nota SAEB | **INEP** | mesmas planilhas do IDEB |
+| Aprovação e nota SAEB | **INEP** | mesmas planilhas do IDEB |
+| **Abandono (evasão) e reprovação** | **INEP** | Taxas de Rendimento por escola 2023 |
+| **Distorção idade-série** | **INEP** | TDI por escola 2023 |
+| **Infraestrutura, matrículas, porte, localização, recortes (indígena/quilombola)** | **INEP** | Censo Escolar 2023 (por escola) |
 | Coordenadas dos municípios | **IBGE** | centroide real de cada município |
 | Estados, regiões, municípios | **IBGE** | API REST ao vivo (`servicodados.ibge.gov.br`) |
 | Agregados (nacional/região/estado) | derivado | calculado em cima dos dados reais do INEP |

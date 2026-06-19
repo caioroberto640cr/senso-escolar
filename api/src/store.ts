@@ -14,6 +14,17 @@ export interface IndicadorEtapa {
   taxa_aprovacao: number | null;
   nota_saeb: number | null;
   historico_ideb: { ano: number; valor: number }[];
+  abandono?: number | null;
+  reprovacao?: number | null;
+  distorcao?: number | null;
+}
+
+export interface Censo {
+  matriculas: number | null;
+  porte: string | null;
+  localizacao: string | null; // urbana | rural
+  recorte: string | null; // indigena | quilombola | assentamento
+  infra: Record<string, boolean>;
 }
 
 export interface Escola {
@@ -28,6 +39,7 @@ export interface Escola {
   latitude: number;
   longitude: number;
   indicadores: Partial<Record<EtapaKey, IndicadorEtapa>>;
+  censo?: Censo;
 }
 
 /** Escola "achatada" para uma etapa específica (o que o frontend de lista/mapa consome). */
@@ -44,8 +56,11 @@ export interface EscolaProjetada {
   ideb: number;
   taxa_aprovacao: number | null;
   nota_saeb: number | null;
+  abandono: number | null;
+  distorcao: number | null;
   score_geral: number;
   historico_ideb: { ano: number; valor: number }[];
+  censo?: Censo;
 }
 
 export function projetar(e: Escola, etapa: EtapaKey): EscolaProjetada | null {
@@ -64,8 +79,11 @@ export function projetar(e: Escola, etapa: EtapaKey): EscolaProjetada | null {
     ideb: ind.ideb,
     taxa_aprovacao: ind.taxa_aprovacao,
     nota_saeb: ind.nota_saeb,
+    abandono: ind.abandono ?? null,
+    distorcao: ind.distorcao ?? null,
     score_geral: ind.ideb,
     historico_ideb: ind.historico_ideb,
+    censo: e.censo,
   };
 }
 

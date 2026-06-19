@@ -10,7 +10,8 @@
  */
 import AdmZip from 'adm-zip';
 import * as XLSX from 'xlsx';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, createReadStream } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { UF_REGIAO } from '../src/regioes.ts';
@@ -78,9 +79,25 @@ function jitter(seed: number): number {
   return (x - Math.floor(x) - 0.5) * 0.05; // ±0.025°
 }
 function num(v: unknown): number | null {
-  if (v === '-' || v === '' || v == null) return null;
+  if (v === '-' || v === '--' || v === '' || v == null) return null;
   const n = typeof v === 'number' ? v : Number(String(v).replace(',', '.'));
   return Number.isNaN(n) ? null : n;
+}
+const bool = (v: unknown) => String(v) === '1';
+function porteDe(m: number | null): string | null {
+  if (m == null) return null;
+  if (m <= 50) return 'Até 50';
+  if (m <= 200) return '51 a 200';
+  if (m <= 500) return '201 a 500';
+  if (m <= 1000) return '501 a 1000';
+  return 'Mais de 1000';
+}
+function recorteDe(cod: string): string | null {
+  // TP_LOCALIZACAO_DIFERENCIADA (Censo 2023): 1=assentamento, 2=terra indígena, 3=quilombo
+  if (cod === '2') return 'indigena';
+  if (cod === '3') return 'quilombola';
+  if (cod === '1') return 'assentamento';
+  return null;
 }
 const dependenciaDe = (rede: string): string => {
   const r = (rede || '').toLowerCase();
@@ -107,7 +124,17 @@ interface EscolaMerge {
     taxa_aprovacao: number | null;
     nota_saeb: number | null;
     historico_ideb: { ano: number; valor: number }[];
+    abandono?: number | null;
+    reprovacao?: number | null;
+    distorcao?: number | null;
   }>>;
+  censo?: {
+    matriculas: number | null;
+    porte: string | null;
+    localizacao: string | null; // urbana | rural
+    recorte: string | null; // indigena | quilombola | assentamento
+    infra: Record<string, boolean>;
+  };
 }
 
 function processarEtapa(
@@ -219,6 +246,122 @@ function agregarEtapa(escolas: EscolaMerge[], etapa: EtapaKey) {
   };
 }
 
+// ---- Enriquecimento: rendimento (abandono/reprovação) por escola ----
+const REND_COD: Record<EtapaKey, { aband: string; reprov: string }> = {
+  anos_iniciais: { aband: '3_CAT_FUN_AI', reprov: '2_CAT_FUN_AI' },
+  anos_finais: { aband: '3_CAT_FUN_AF', reprov: '2_CAT_FUN_AF' },
+  medio: { aband: '3_CAT_MED', reprov: '2_CAT_MED' },
+};
+const TDI_COD: Record<EtapaKey, string> = {
+  anos_iniciais: 'FUN_AI_CAT_0', anos_finais: 'FUN_AF_CAT_0', medio: 'MED_CAT_0',
+};
+
+function lerPlanilhaInep(zipFile: string) {
+  const zip = new AdmZip(join(RAW, zipFile));
+  const entry = zip.getEntries().find((e) => e.entryName.endsWith('.xlsx'));
+  if (!entry) throw new Error(`xlsx não encontrado em ${zipFile}`);
+  const wb = XLSX.read(entry.getData(), { type: 'buffer' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, blankrows: false });
+  let hr = -1;
+  for (let i = 0; i < 12; i++) if ((rows[i] || []).includes('CO_ENTIDADE')) { hr = i; break; }
+  const codes: string[] = rows[hr].map((c: any) => String(c ?? ''));
+  return { rows, hr, col: (c: string) => codes.indexOf(c) };
+}
+
+function enriquecerRendimento(escolas: Map<string, EscolaMerge>) {
+  const { rows, hr, col } = lerPlanilhaInep('tx_rend_escolas_2023.zip');
+  const iId = col('CO_ENTIDADE');
+  const idx = Object.fromEntries(
+    (['anos_iniciais', 'anos_finais', 'medio'] as EtapaKey[]).map((et) => [
+      et, { aband: col(REND_COD[et].aband), reprov: col(REND_COD[et].reprov) },
+    ])
+  ) as Record<EtapaKey, { aband: number; reprov: number }>;
+  let n = 0;
+  for (let i = hr + 1; i < rows.length; i++) {
+    const r = rows[i]; if (!r || !r[iId]) continue;
+    const e = escolas.get(String(r[iId])); if (!e) continue;
+    for (const et of e.etapas) {
+      const ind = e.indicadores[et]; if (!ind) continue;
+      ind.abandono = num(r[idx[et].aband]);
+      ind.reprovacao = num(r[idx[et].reprov]);
+    }
+    n++;
+  }
+  console.log(`  rendimento (abandono/reprovação): ${n} escolas casadas`);
+}
+
+function enriquecerTDI(escolas: Map<string, EscolaMerge>) {
+  const { rows, hr, col } = lerPlanilhaInep('tdi_escolas_2023.zip');
+  const iId = col('CO_ENTIDADE');
+  const idx = Object.fromEntries(
+    (['anos_iniciais', 'anos_finais', 'medio'] as EtapaKey[]).map((et) => [et, col(TDI_COD[et])])
+  ) as Record<EtapaKey, number>;
+  let n = 0;
+  for (let i = hr + 1; i < rows.length; i++) {
+    const r = rows[i]; if (!r || !r[iId]) continue;
+    const e = escolas.get(String(r[iId])); if (!e) continue;
+    for (const et of e.etapas) {
+      const ind = e.indicadores[et]; if (!ind) continue;
+      ind.distorcao = num(r[idx[et]]);
+    }
+    n++;
+  }
+  console.log(`  distorção idade-série: ${n} escolas casadas`);
+}
+
+async function enriquecerCenso(escolas: Map<string, EscolaMerge>) {
+  const csv = join(RAW, 'microdados_ed_basica_2023.csv');
+  if (!existsSync(csv)) {
+    console.log('  extraindo CSV do Censo (200MB)...');
+    const z = new AdmZip(join(RAW, 'censo_2023.zip'));
+    const entry = z.getEntries().find((e) => e.entryName.endsWith('microdados_ed_basica_2023.csv'));
+    z.extractEntryTo(entry!.entryName, RAW, false, true);
+  }
+  const rl = createInterface({ input: createReadStream(csv, { encoding: 'latin1' }), crlfDelay: Infinity });
+  let idx: Record<string, number> | null = null;
+  let n = 0;
+  for await (const ln of rl) {
+    if (!idx) {
+      const h = ln.split(';');
+      const at = (name: string) => h.indexOf(name);
+      idx = {
+        id: at('CO_ENTIDADE'), mat: at('QT_MAT_BAS'), loc: at('TP_LOCALIZACAO'),
+        locDif: at('TP_LOCALIZACAO_DIFERENCIADA'),
+        internet: at('IN_INTERNET'), internetAlunos: at('IN_INTERNET_ALUNOS'),
+        labInfo: at('IN_LABORATORIO_INFORMATICA'), labCienc: at('IN_LABORATORIO_CIENCIAS'),
+        bib: at('IN_BIBLIOTECA'), bibSala: at('IN_BIBLIOTECA_SALA_LEITURA'),
+        quadra: at('IN_QUADRA_ESPORTES'), auditorio: at('IN_AUDITORIO'),
+        banheiroPne: at('IN_BANHEIRO_PNE'), agua: at('IN_AGUA_POTAVEL'),
+      };
+      continue;
+    }
+    const c = ln.split(';');
+    const id = c[idx.id]; if (!id) continue;
+    const e = escolas.get(id); if (!e) continue;
+    const mat = num(c[idx.mat]);
+    e.censo = {
+      matriculas: mat,
+      porte: porteDe(mat),
+      localizacao: c[idx.loc] === '1' ? 'urbana' : c[idx.loc] === '2' ? 'rural' : null,
+      recorte: recorteDe(c[idx.locDif]),
+      infra: {
+        internet: bool(c[idx.internet]),
+        internet_alunos: bool(c[idx.internetAlunos]),
+        lab_informatica: bool(c[idx.labInfo]),
+        lab_ciencias: bool(c[idx.labCienc]),
+        biblioteca: bool(c[idx.bib]) || bool(c[idx.bibSala]),
+        quadra: bool(c[idx.quadra]),
+        auditorio: bool(c[idx.auditorio]),
+        banheiro_acessivel: bool(c[idx.banheiroPne]),
+        agua_potavel: bool(c[idx.agua]),
+      },
+    };
+    n++;
+  }
+  console.log(`  censo (infra/matrículas): ${n} escolas casadas`);
+}
+
 async function main() {
   console.log('=== ETL EduInsight — 3 etapas (Anos Iniciais, Finais, Médio) ===\n');
   await baixarSeFaltar(MUNICIPIOS.url, MUNICIPIOS.file);
@@ -236,6 +379,12 @@ async function main() {
   // ordena etapas de cada escola na ordem pedagógica
   const ordem: EtapaKey[] = ['anos_iniciais', 'anos_finais', 'medio'];
   for (const e of lista) e.etapas = ordem.filter((o) => e.etapas.includes(o));
+
+  // ---- Enriquecimento (Censo + Indicadores) ----
+  console.log('→ enriquecendo com Censo e Indicadores...');
+  enriquecerRendimento(escolas);
+  enriquecerTDI(escolas);
+  await enriquecerCenso(escolas);
 
   // ---- Agregados por etapa ----
   const agregados = {
@@ -284,8 +433,13 @@ async function main() {
       medio: agregados.medio.nacional.escolas,
     },
     anos: ANOS,
+    fontes_extras: [
+      'INEP — Taxas de Rendimento por escola 2023 (abandono/reprovação)',
+      'INEP — Distorção Idade-Série (TDI) por escola 2023',
+      'INEP — Censo Escolar 2023 (infraestrutura, matrículas, localização)',
+    ],
     observacao:
-      'IDEB, Taxa de Aprovação e Nota SAEB são dados reais do INEP (2023), separados por etapa (não comparáveis entre si). Coordenadas = centroide real do município (com leve dispersão).',
+      'IDEB, aprovação, SAEB, abandono, reprovação e distorção idade-série são dados reais do INEP (2023), por etapa (não comparáveis entre si). Infraestrutura, matrículas e localização vêm do Censo Escolar 2023. Coordenadas = centroide real do município (com leve dispersão).',
   };
 
   writeFileSync(join(OUT, 'escolas.json'), JSON.stringify(lista));

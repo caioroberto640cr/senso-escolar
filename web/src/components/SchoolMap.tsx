@@ -73,9 +73,11 @@ export function SchoolMap({
                   {e.taxa_aprovacao != null ? `${e.taxa_aprovacao}%` : '—'}
                 </p>
               </div>
-              <div className="rounded-lg bg-sky-100 px-2 py-1.5 text-center">
-                <p className="text-[10px] text-ink-faint">SAEB</p>
-                <p className="text-sm font-semibold text-ink">{e.nota_saeb ?? '—'}</p>
+              <div className="rounded-lg bg-peach-100 px-2 py-1.5 text-center">
+                <p className="text-[10px] text-ink-faint">Abandono</p>
+                <p className="text-sm font-semibold text-ink">
+                  {e.abandono != null ? `${e.abandono}%` : '—'}
+                </p>
               </div>
             </div>
             <div className="flex items-center justify-between">

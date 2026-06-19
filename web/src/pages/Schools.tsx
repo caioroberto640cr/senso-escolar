@@ -25,18 +25,20 @@ export default function Schools() {
   const [busca, setBusca] = useState('');
   const [uf, setUf] = useState('todas');
   const [ordem, setOrdem] = useState<Ordem>('ideb');
+  const [localizacao, setLocalizacao] = useState('todas');
+  const [recorte, setRecorte] = useState('todas');
   const [limit, setLimit] = useState(24);
 
   const buscaDebounced = useDebounce(busca);
   const { etapa } = useEtapa();
 
   const { data, loading, error } = useFetch(
-    () => api.escolas({ etapa, q: buscaDebounced, uf, sort: ordem, limit }),
-    [etapa, buscaDebounced, uf, ordem, limit]
+    () => api.escolas({ etapa, q: buscaDebounced, uf, sort: ordem, limit, localizacao, recorte }),
+    [etapa, buscaDebounced, uf, ordem, limit, localizacao, recorte]
   );
 
   // reseta paginação ao mudar filtros
-  useEffect(() => setLimit(24), [buscaDebounced, uf, ordem, etapa]);
+  useEffect(() => setLimit(24), [buscaDebounced, uf, ordem, etapa, localizacao, recorte]);
 
   return (
     <div className="space-y-5">
@@ -61,6 +63,24 @@ export default function Schools() {
             {UFS.map((u) => (
               <option key={u} value={u}>{u}</option>
             ))}
+          </select>
+          <select
+            value={localizacao}
+            onChange={(e) => setLocalizacao(e.target.value)}
+            className="rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-sm outline-none focus:border-brand-300"
+          >
+            <option value="todas">Toda localização</option>
+            <option value="urbana">Urbana</option>
+            <option value="rural">Rural</option>
+          </select>
+          <select
+            value={recorte}
+            onChange={(e) => setRecorte(e.target.value)}
+            className="rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-sm outline-none focus:border-brand-300"
+          >
+            <option value="todas">Todos os perfis</option>
+            <option value="indigena">Indígena</option>
+            <option value="quilombola">Quilombola</option>
           </select>
           <select
             value={ordem}

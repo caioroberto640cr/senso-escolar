@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-06-17T19:00:29.575Z",
+  "gerado_em": "2026-06-19T01:57:21.401Z",
   "fonte_indicadores": "INEP — IDEB 2023 (Anos Iniciais, Anos Finais e Ensino Médio, por escola)",
   "fonte_coordenadas": "IBGE (via dataset municipios-brasileiros)",
   "total_escolas": 64479,
@@ -14,5 +14,10 @@
     2021,
     2023
   ],
-  "observacao": "IDEB, Taxa de Aprovação e Nota SAEB são dados reais do INEP (2023), separados por etapa (não comparáveis entre si). Coordenadas = centroide real do município (com leve dispersão)."
+  "fontes_extras": [
+    "INEP — Taxas de Rendimento por escola 2023 (abandono/reprovação)",
+    "INEP — Distorção Idade-Série (TDI) por escola 2023",
+    "INEP — Censo Escolar 2023 (infraestrutura, matrículas, localização)"
+  ],
+  "observacao": "IDEB, aprovação, SAEB, abandono, reprovação e distorção idade-série são dados reais do INEP (2023), por etapa (não comparáveis entre si). Infraestrutura, matrículas e localização vêm do Censo Escolar 2023. Coordenadas = centroide real do município (com leve dispersão)."
 }

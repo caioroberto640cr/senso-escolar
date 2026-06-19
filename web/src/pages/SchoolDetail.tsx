@@ -19,7 +19,7 @@ import { MetricCard } from '../components/ui/MetricCard';
 import { Loading, ErrorState } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
-import { etapaLabel, type EtapaKey } from '../types';
+import { etapaLabel, INFRA_ITENS, type EtapaKey } from '../types';
 import { dependenciaLabel, scoreTone, cx } from '../lib/utils';
 
 const tooltipStyle = {
@@ -134,16 +134,30 @@ export default function SchoolDetail() {
       ) : (
         <>
           {/* Métricas reais */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <MetricCard label={`IDEB 2023 · ${etapaLabel(aba)}`} value={ind.ideb.toFixed(1)} icon="🎓" tone="brand" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <MetricCard label={`IDEB · ${etapaLabel(aba)}`} value={ind.ideb.toFixed(1)} icon="🎓" tone="brand" />
             <MetricCard
-              label="Taxa de aprovação"
+              label="Aprovação"
               value={ind.taxa_aprovacao ?? '—'}
               unit={ind.taxa_aprovacao != null ? '%' : ''}
               icon="✅"
               tone="mint"
             />
-            <MetricCard label="Nota média SAEB" value={ind.nota_saeb ?? '—'} icon="📖" tone="sky" />
+            <MetricCard
+              label="Abandono (evasão)"
+              value={ind.abandono ?? '—'}
+              unit={ind.abandono != null ? '%' : ''}
+              icon="📉"
+              tone="peach"
+            />
+            <MetricCard label="Nota SAEB" value={ind.nota_saeb ?? '—'} icon="📖" tone="sky" />
+            <MetricCard
+              label="Distorção idade-série"
+              value={ind.distorcao ?? '—'}
+              unit={ind.distorcao != null ? '%' : ''}
+              icon="⏳"
+              tone="peach"
+            />
           </div>
 
           {/* Gráficos */}
@@ -176,6 +190,47 @@ export default function SchoolDetail() {
             </Card>
           </div>
         </>
+      )}
+
+      {/* Infraestrutura (Censo Escolar) */}
+      {escola.censo && (
+        <Card>
+          <SectionTitle
+            title="Infraestrutura e recursos"
+            subtitle="Censo Escolar 2023"
+            action={
+              <div className="flex flex-wrap gap-1.5">
+                {escola.censo.matriculas != null && (
+                  <Badge tone="brand">{escola.censo.matriculas.toLocaleString('pt-BR')} matrículas</Badge>
+                )}
+                {escola.censo.porte && <Badge tone="neutral">Porte: {escola.censo.porte}</Badge>}
+                {escola.censo.localizacao && (
+                  <Badge tone="sky">{escola.censo.localizacao === 'rural' ? 'Rural' : 'Urbana'}</Badge>
+                )}
+                {escola.censo.recorte === 'indigena' && <Badge tone="sun">Indígena</Badge>}
+                {escola.censo.recorte === 'quilombola' && <Badge tone="sun">Quilombola</Badge>}
+              </div>
+            }
+          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {INFRA_ITENS.map((item) => {
+              const tem = escola.censo!.infra[item.key];
+              return (
+                <div
+                  key={item.key}
+                  className={cx(
+                    'flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm border',
+                    tem ? 'bg-mint-100 border-mint-200 text-ink' : 'bg-surface-2 border-line text-ink-faint'
+                  )}
+                >
+                  <span className="text-base">{item.icon}</span>
+                  <span className="flex-1 leading-tight">{item.label}</span>
+                  <span className={tem ? 'text-mint-600' : 'text-peach-500'}>{tem ? '✓' : '✕'}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       )}
 
       {/* Localização real */}
