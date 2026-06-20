@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconWorld, IconFlask, IconBook, IconAccessible, type Icon } from '@tabler/icons-react';
 import { Card } from '../components/ui/Card';
 import { SchoolMap } from '../components/SchoolMap';
 import { ChoroplethMap } from '../components/ChoroplethMap';
@@ -25,11 +26,11 @@ const desempenhos: { v: Desempenho; label: string; dot: string }[] = [
   { v: 'critico', label: 'Crítico', dot: 'bg-peach-500' },
 ];
 
-const INFRA_FILTROS = [
-  { v: 'internet', label: '🌐 Internet' },
-  { v: 'lab_ciencias', label: '🔬 Lab. ciências' },
-  { v: 'biblioteca', label: '📚 Biblioteca' },
-  { v: 'banheiro_acessivel', label: '♿ Acessível' },
+const INFRA_FILTROS: { v: string; label: string; icon: Icon }[] = [
+  { v: 'internet', label: 'Internet', icon: IconWorld },
+  { v: 'lab_ciencias', label: 'Lab. ciências', icon: IconFlask },
+  { v: 'biblioteca', label: 'Biblioteca', icon: IconBook },
+  { v: 'banheiro_acessivel', label: 'Acessível', icon: IconAccessible },
 ];
 
 export default function MapPage() {
@@ -189,10 +190,11 @@ export default function MapPage() {
               key={f.v}
               onClick={() => toggleInfra(f.v)}
               className={cx(
-                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors',
                 infra.includes(f.v) ? 'bg-brand-500 text-white' : 'bg-brand-50 text-ink-soft hover:bg-brand-100'
               )}
             >
+              <f.icon size={14} stroke={1.75} aria-hidden="true" />
               {f.label}
             </button>
           ))}

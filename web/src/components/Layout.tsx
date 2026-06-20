@@ -1,4 +1,8 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
+import {
+  IconLayoutDashboard, IconMap2, IconBuilding, IconArrowsLeftRight, IconSitemap,
+  IconFileText, IconBell, IconUsers, IconDatabase, IconSettings, type Icon,
+} from '@tabler/icons-react';
 import { cx } from '../lib/utils';
 import { useEtapa } from '../lib/etapa';
 import { useAuth } from '../lib/auth';
@@ -8,7 +12,7 @@ import { Logo } from './Logo';
 interface NavItem {
   to: string;
   label: string;
-  icon: string;
+  icon: Icon;
 }
 
 function EtapaSelector() {
@@ -72,16 +76,16 @@ export default function Layout() {
   const { isAdmin } = useAuth();
 
   const itens: NavItem[] = [
-    { to: '/', label: 'Dashboard', icon: '📊' },
-    { to: '/mapa', label: 'Mapa', icon: '🗺️' },
-    { to: '/escolas', label: 'Escolas', icon: '🏫' },
-    { to: '/comparativo', label: 'Comparativo', icon: '⚖️' },
-    { to: '/explorar', label: 'Explorar', icon: '🧭' },
-    { to: '/relatorios', label: 'Relatórios', icon: '📄' },
-    { to: '/alertas', label: 'Alertas', icon: '🔔' },
-    ...(isAdmin ? [{ to: '/usuarios', label: 'Usuários', icon: '👥' }] : []),
-    { to: '/fontes', label: 'Fontes', icon: '🔌' },
-    { to: '/configuracoes', label: 'Config.', icon: '⚙️' },
+    { to: '/', label: 'Dashboard', icon: IconLayoutDashboard },
+    { to: '/mapa', label: 'Mapa', icon: IconMap2 },
+    { to: '/escolas', label: 'Escolas', icon: IconBuilding },
+    { to: '/comparativo', label: 'Comparativo', icon: IconArrowsLeftRight },
+    { to: '/explorar', label: 'Explorar', icon: IconSitemap },
+    { to: '/relatorios', label: 'Relatórios', icon: IconFileText },
+    { to: '/alertas', label: 'Alertas', icon: IconBell },
+    ...(isAdmin ? [{ to: '/usuarios', label: 'Usuários', icon: IconUsers }] : []),
+    { to: '/fontes', label: 'Fontes', icon: IconDatabase },
+    { to: '/configuracoes', label: 'Config.', icon: IconSettings },
   ];
 
   return (
@@ -114,7 +118,7 @@ export default function Layout() {
                 )
               }
             >
-              <span className="text-lg leading-none" aria-hidden="true">{it.icon}</span>
+              <it.icon size={20} stroke={1.75} aria-hidden="true" />
               <span>{it.label}</span>
             </NavLink>
           ))}
