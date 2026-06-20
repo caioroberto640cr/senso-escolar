@@ -22,6 +22,7 @@ import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
 import { etapaLabel, INFRA_ITENS, type EtapaKey } from '../types';
 import { dependenciaLabel, scoreTone, cx } from '../lib/utils';
+import { exportarEscolaPDF } from '../lib/export';
 
 const tooltipStyle = {
   borderRadius: 12,
@@ -105,10 +106,10 @@ export default function SchoolDetail() {
               ★ Favoritar
             </button>
             <button
-              onClick={() => window.print()}
+              onClick={() => exportarEscolaPDF(escola)}
               className="rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors"
             >
-              🖨 Imprimir / PDF
+              📄 Baixar PDF
             </button>
           </div>
         </div>

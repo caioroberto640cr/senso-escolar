@@ -4,7 +4,7 @@ import { Badge } from '../components/ui/Badge';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
 import { etapaLabel } from '../types';
-import { exportarEscolasCSV } from '../lib/export';
+import { exportarEscolasCSV, exportarEscolasPDF } from '../lib/export';
 import { REGIOES, UFS } from '../data/mock';
 import { cx } from '../lib/utils';
 
@@ -48,8 +48,22 @@ export default function Relatorios() {
     setCols((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   }
 
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+
   function exportar() {
     exportarEscolasCSV({ ...filtros, cols });
+  }
+
+  async function exportarPdf() {
+    setGerandoPdf(true);
+    try {
+      const sub = `Etapa: ${etapaLabel(etapa)} · Região: ${regiao}`
+        + (uf !== 'todas' ? ` / ${uf}` : '')
+        + (localizacao !== 'todas' ? ` · ${localizacao}` : '');
+      await exportarEscolasPDF({ ...filtros, cols }, cols, sub);
+    } finally {
+      setGerandoPdf(false);
+    }
   }
 
   return (
@@ -143,10 +157,11 @@ export default function Relatorios() {
             ⬇ Exportar CSV (Excel)
           </button>
           <button
-            onClick={() => window.print()}
-            className="flex-1 min-w-[160px] rounded-xl bg-brand-500 hover:bg-brand-600 py-2.5 text-sm font-semibold text-white transition-colors"
+            onClick={exportarPdf}
+            disabled={!contagem.data || contagem.data.total === 0 || cols.length === 0 || gerandoPdf}
+            className="flex-1 min-w-[160px] rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 py-2.5 text-sm font-semibold text-white transition-colors"
           >
-            🖨 Imprimir / PDF
+            {gerandoPdf ? 'Gerando PDF…' : '📄 Baixar PDF (com dados)'}
           </button>
         </div>
       </Card>

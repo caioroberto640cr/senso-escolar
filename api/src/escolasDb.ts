@@ -35,7 +35,7 @@ function montarFiltros(q0: Record<string, any>) {
 const SELECT_PROJ = `
   e.id_escola, e.nome, e.municipio, e.estado, e.regiao, e.dependencia, e.etapas,
   e.latitude, e.longitude, e.matriculas, e.porte, e.localizacao, e.recorte, e.infra,
-  ee.ideb, ee.taxa_aprovacao, ee.nota_saeb, ee.abandono, ee.distorcao, ee.historico_ideb`;
+  ee.ideb, ee.taxa_aprovacao, ee.nota_saeb, ee.abandono, ee.reprovacao, ee.distorcao, ee.historico_ideb`;
 
 function linhaParaProjetada(r: any): EscolaProjetada {
   return {
@@ -43,7 +43,7 @@ function linhaParaProjetada(r: any): EscolaProjetada {
     regiao: r.regiao, dependencia: r.dependencia, etapas: r.etapas as EtapaKey[],
     latitude: r.latitude, longitude: r.longitude,
     ideb: r.ideb, taxa_aprovacao: r.taxa_aprovacao, nota_saeb: r.nota_saeb,
-    abandono: r.abandono ?? null, distorcao: r.distorcao ?? null,
+    abandono: r.abandono ?? null, reprovacao: r.reprovacao ?? null, distorcao: r.distorcao ?? null,
     score_geral: r.ideb, historico_ideb: r.historico_ideb ?? [],
     censo: {
       matriculas: r.matriculas ?? null, porte: r.porte ?? null,

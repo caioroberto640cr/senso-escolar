@@ -66,6 +66,7 @@ export interface EscolaProjetada {
   taxa_aprovacao: number | null;
   nota_saeb: number | null;
   abandono: number | null;
+  reprovacao: number | null;
   distorcao: number | null;
   score_geral: number; // = IDEB da etapa, usado para colorir o pin
   historico_ideb: PontoHistorico[];
