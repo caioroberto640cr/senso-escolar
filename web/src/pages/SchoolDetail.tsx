@@ -21,6 +21,10 @@ import { Loading, ErrorState } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
 import { etapaLabel, INFRA_ITENS, type EtapaKey } from '../types';
+import {
+  IconSchool, IconCircleCheck, IconTrendingDown, IconBook, IconHourglass,
+  IconMapPin, IconStar, IconFileText, IconCheck, IconX,
+} from '@tabler/icons-react';
 import { dependenciaLabel, scoreTone, cx } from '../lib/utils';
 import { exportarEscolaPDF } from '../lib/export';
 
@@ -92,7 +96,7 @@ export default function SchoolDetail() {
                 </span>
               )}
             </div>
-            <p className="text-ink-soft">📍 {escola.municipio}, {escola.estado} · {escola.regiao}</p>
+            <p className="text-ink-soft inline-flex items-center gap-1.5"><IconMapPin size={16} className="text-brand-500" /> {escola.municipio}, {escola.estado} · {escola.regiao}</p>
             <p className="text-xs text-ink-faint mt-1">Código INEP: {escola.id_escola} · Fonte: INEP/IDEB 2023</p>
             <div className="flex flex-wrap gap-1.5 mt-3">
               <Badge tone="brand">{dependenciaLabel(escola.dependencia)}</Badge>
@@ -102,14 +106,14 @@ export default function SchoolDetail() {
             </div>
           </div>
           <div className="flex gap-2 no-print">
-            <button className="rounded-xl bg-brand-50 hover:bg-brand-100 px-4 py-2 text-sm font-medium text-brand-600 transition-colors">
-              ★ Favoritar
+            <button className="inline-flex items-center gap-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 px-4 py-2 text-sm font-medium text-brand-600 transition-colors">
+              <IconStar size={16} /> Favoritar
             </button>
             <button
               onClick={() => exportarEscolaPDF(escola)}
-              className="rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors"
             >
-              📄 Baixar PDF
+              <IconFileText size={16} /> Baixar PDF
             </button>
           </div>
         </div>
@@ -140,12 +144,12 @@ export default function SchoolDetail() {
         <>
           {/* Métricas reais */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <MetricCard label={`IDEB · ${etapaLabel(aba)}`} value={ind.ideb.toFixed(1)} icon="🎓" tone="brand" info={DESCRICOES.ideb} />
+            <MetricCard label={`IDEB · ${etapaLabel(aba)}`} value={ind.ideb.toFixed(1)} icon={<IconSchool size={20} />} tone="brand" info={DESCRICOES.ideb} />
             <MetricCard
               label="Aprovação"
               value={ind.taxa_aprovacao ?? '—'}
               unit={ind.taxa_aprovacao != null ? '%' : ''}
-              icon="✅"
+              icon={<IconCircleCheck size={20} />}
               tone="mint"
               info={DESCRICOES.aprovacao}
             />
@@ -153,16 +157,16 @@ export default function SchoolDetail() {
               label="Abandono (evasão)"
               value={ind.abandono ?? '—'}
               unit={ind.abandono != null ? '%' : ''}
-              icon="📉"
+              icon={<IconTrendingDown size={20} />}
               tone="peach"
               info={DESCRICOES.abandono}
             />
-            <MetricCard label="Nota SAEB" value={ind.nota_saeb ?? '—'} icon="📖" tone="sky" info={DESCRICOES.saeb} />
+            <MetricCard label="Nota SAEB" value={ind.nota_saeb ?? '—'} icon={<IconBook size={20} />} tone="sky" info={DESCRICOES.saeb} />
             <MetricCard
               label="Distorção idade-série"
               value={ind.distorcao ?? '—'}
               unit={ind.distorcao != null ? '%' : ''}
-              icon="⏳"
+              icon={<IconHourglass size={20} />}
               tone="peach"
               info={DESCRICOES.distorcao}
             />
@@ -231,9 +235,9 @@ export default function SchoolDetail() {
                     tem ? 'bg-mint-100 border-mint-200 text-ink' : 'bg-surface-2 border-line text-ink-faint'
                   )}
                 >
-                  <span className="text-base">{item.icon}</span>
+                  <item.icon size={18} className={tem ? 'text-mint-600' : 'text-ink-faint'} />
                   <span className="flex-1 leading-tight">{item.label}</span>
-                  <span className={tem ? 'text-mint-600' : 'text-peach-500'}>{tem ? '✓' : '✕'}</span>
+                  <span className={tem ? 'text-mint-600' : 'text-peach-500'}>{tem ? <IconCheck size={16} /> : <IconX size={16} />}</span>
                 </div>
               );
             })}

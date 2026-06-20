@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { Link } from 'react-router-dom';
+import { IconSchool, IconCircleCheck, IconBook, IconBuilding } from '@tabler/icons-react';
 import { Card, SectionTitle } from '../components/ui/Card';
 import { MetricCard } from '../components/ui/MetricCard';
 import { DESCRICOES } from '../components/ui/InfoTip';
@@ -49,10 +50,10 @@ export default function Dashboard() {
           </Card>
         ) : (
           <>
-            <MetricCard label={`IDEB Nacional · ${etapaLabel(etapa)}`} value={nac.data.ideb.toFixed(2)} icon="🎓" tone="brand" info={DESCRICOES.ideb} />
-            <MetricCard label="Taxa de Aprovação" value={nac.data.taxa_aprovacao} unit="%" icon="✅" tone="mint" info={DESCRICOES.aprovacao} />
-            <MetricCard label="Nota Média SAEB" value={nac.data.nota_saeb} icon="📖" tone="sky" info={DESCRICOES.saeb} />
-            <MetricCard label="Escolas (reais)" value={nac.data.escolas.toLocaleString('pt-BR')} icon="🏫" tone="peach" />
+            <MetricCard label={`IDEB Nacional · ${etapaLabel(etapa)}`} value={nac.data.ideb.toFixed(2)} icon={<IconSchool size={20} />} tone="brand" info={DESCRICOES.ideb} />
+            <MetricCard label="Taxa de Aprovação" value={nac.data.taxa_aprovacao} unit="%" icon={<IconCircleCheck size={20} />} tone="mint" info={DESCRICOES.aprovacao} />
+            <MetricCard label="Nota Média SAEB" value={nac.data.nota_saeb} icon={<IconBook size={20} />} tone="sky" info={DESCRICOES.saeb} />
+            <MetricCard label="Escolas (reais)" value={nac.data.escolas.toLocaleString('pt-BR')} icon={<IconBuilding size={20} />} tone="peach" />
           </>
         )}
       </div>

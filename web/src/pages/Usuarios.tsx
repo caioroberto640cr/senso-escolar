@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconSearch } from '@tabler/icons-react';
 import { Card, SectionTitle } from '../components/ui/Card';
 import { Loading, ErrorState } from '../components/ui/State';
 import { api, useFetch, type Conta } from '../lib/api';
@@ -68,7 +69,7 @@ export default function Usuarios() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 pb-4">
         <SectionTitle title="Usuários cadastrados" subtitle={`${usuarios.length} conta(s) reais no banco`} />
         <div className="flex items-center gap-2 rounded-xl bg-surface-2 border border-line px-3">
-          <span>🔍</span>
+          <IconSearch size={18} className="text-ink-faint shrink-0" />
           <input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { IconRefresh, IconPlug } from '@tabler/icons-react';
 import { Card, SectionTitle } from '../components/ui/Card';
 import { api, type FonteDados } from '../lib/api';
 import { Loading, ErrorState } from '../components/ui/State';
@@ -71,9 +72,10 @@ export default function Fontes() {
           <button
             onClick={() => carregar('all')}
             disabled={!!ocupado}
-            className="rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 px-4 py-2 text-sm font-semibold text-white transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 px-4 py-2 text-sm font-semibold text-white transition-colors"
           >
-            {ocupado === 'all' ? 'Verificando…' : '🔄 Verificar todas'}
+            <IconRefresh size={16} className={ocupado === 'all' ? 'animate-spin' : ''} />
+            {ocupado === 'all' ? 'Verificando…' : 'Verificar todas'}
           </button>
         </div>
       </Card>
@@ -87,7 +89,7 @@ export default function Fontes() {
             <Card key={f.id}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 rounded-xl bg-brand-100 grid place-items-center text-xl">🔌</div>
+                  <div className="h-11 w-11 rounded-xl bg-brand-100 text-brand-600 grid place-items-center"><IconPlug size={22} /></div>
                   <div>
                     <h3 className="font-semibold text-ink">{f.nome}</h3>
                     <span className={cx('inline-flex items-center gap-1.5 text-xs font-medium mt-0.5', s.text)}>

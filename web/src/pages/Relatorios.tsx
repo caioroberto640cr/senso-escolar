@@ -4,6 +4,7 @@ import { Badge } from '../components/ui/Badge';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
 import { etapaLabel } from '../types';
+import { IconCheck, IconDownload, IconFileText, IconChartBar } from '@tabler/icons-react';
 import { exportarEscolasCSV, exportarEscolasPDF } from '../lib/export';
 import { REGIOES, UFS } from '../data/mock';
 import { cx } from '../lib/utils';
@@ -82,11 +83,11 @@ export default function Relatorios() {
               key={c.k}
               onClick={() => toggleCol(c.k)}
               className={cx(
-                'rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+                'inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
                 cols.includes(c.k) ? 'bg-brand-500 text-white' : 'bg-brand-50 text-ink-soft hover:bg-brand-100'
               )}
             >
-              {cols.includes(c.k) ? '✓ ' : ''}
+              {cols.includes(c.k) && <IconCheck size={15} />}
               {c.label}
             </button>
           ))}
@@ -152,16 +153,16 @@ export default function Relatorios() {
           <button
             onClick={exportar}
             disabled={!contagem.data || contagem.data.total === 0}
-            className="flex-1 min-w-[160px] rounded-xl bg-mint-500 hover:bg-mint-600 disabled:opacity-50 py-2.5 text-sm font-semibold text-white transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 flex-1 min-w-[160px] rounded-xl bg-mint-500 hover:bg-mint-600 disabled:opacity-50 py-2.5 text-sm font-semibold text-white transition-colors"
           >
-            ⬇ Exportar CSV (Excel)
+            <IconDownload size={17} /> Exportar CSV (Excel)
           </button>
           <button
             onClick={exportarPdf}
             disabled={!contagem.data || contagem.data.total === 0 || cols.length === 0 || gerandoPdf}
-            className="flex-1 min-w-[160px] rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 py-2.5 text-sm font-semibold text-white transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 flex-1 min-w-[160px] rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 py-2.5 text-sm font-semibold text-white transition-colors"
           >
-            {gerandoPdf ? 'Gerando PDF…' : '📄 Baixar PDF (com dados)'}
+            <IconFileText size={17} /> {gerandoPdf ? 'Gerando PDF…' : 'Baixar PDF (com dados)'}
           </button>
         </div>
       </Card>
@@ -178,9 +179,9 @@ export default function Relatorios() {
               onClick={() => exportarEscolasCSV({ etapa, cols, ...a.filtros })}
               className="flex w-full items-center gap-3 rounded-xl border border-line p-3 hover:bg-brand-50 transition-colors text-left"
             >
-              <div className="h-9 w-9 rounded-lg bg-brand-100 grid place-items-center">📊</div>
+              <div className="h-9 w-9 rounded-lg bg-brand-100 text-brand-600 grid place-items-center"><IconChartBar size={18} /></div>
               <span className="flex-1 text-sm font-medium text-ink">{a.nome}</span>
-              <span className="text-brand-600 text-sm font-medium">⬇</span>
+              <IconDownload size={16} className="text-brand-600" />
             </button>
           ))}
         </div>

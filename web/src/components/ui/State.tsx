@@ -1,3 +1,5 @@
+import { IconAlertTriangle } from '@tabler/icons-react';
+
 export function Loading({ label = 'Carregando dados reais...' }: { label?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-ink-faint">
@@ -10,7 +12,7 @@ export function Loading({ label = 'Carregando dados reais...' }: { label?: strin
 export function ErrorState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="h-12 w-12 rounded-2xl bg-peach-100 grid place-items-center text-2xl mb-3">⚠️</div>
+      <div className="h-12 w-12 rounded-2xl bg-peach-100 text-peach-600 grid place-items-center mb-3"><IconAlertTriangle size={24} /></div>
       <p className="text-sm font-medium text-ink mb-1">Não foi possível carregar os dados</p>
       <p className="text-xs text-ink-faint max-w-sm">{message}</p>
       <p className="text-xs text-ink-faint mt-3">

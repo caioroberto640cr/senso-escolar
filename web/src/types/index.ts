@@ -2,6 +2,10 @@
 // Tipos de domínio — baseados nas entidades do documento
 // (Escola, Indicador, Usuário, Alerta)
 // ===========================================================
+import {
+  IconWorld, IconWifi, IconDeviceLaptop, IconFlask, IconBook,
+  IconBallBasketball, IconMasksTheater, IconAccessible, IconDroplet, type Icon,
+} from '@tabler/icons-react';
 
 export type DependenciaAdministrativa =
   | 'federal'
@@ -89,17 +93,17 @@ export interface EscolaCompleta {
   censo?: Censo;
 }
 
-/** Itens de infraestrutura para exibição (rótulo + ícone). */
-export const INFRA_ITENS: { key: string; label: string; icon: string }[] = [
-  { key: 'internet', label: 'Internet', icon: '🌐' },
-  { key: 'internet_alunos', label: 'Internet p/ alunos', icon: '📶' },
-  { key: 'lab_informatica', label: 'Lab. de informática', icon: '💻' },
-  { key: 'lab_ciencias', label: 'Lab. de ciências', icon: '🔬' },
-  { key: 'biblioteca', label: 'Biblioteca', icon: '📚' },
-  { key: 'quadra', label: 'Quadra de esportes', icon: '🏀' },
-  { key: 'auditorio', label: 'Auditório', icon: '🎭' },
-  { key: 'banheiro_acessivel', label: 'Banheiro acessível', icon: '♿' },
-  { key: 'agua_potavel', label: 'Água potável', icon: '🚰' },
+/** Itens de infraestrutura para exibição (rótulo + ícone Tabler). */
+export const INFRA_ITENS: { key: string; label: string; icon: Icon }[] = [
+  { key: 'internet', label: 'Internet', icon: IconWorld },
+  { key: 'internet_alunos', label: 'Internet p/ alunos', icon: IconWifi },
+  { key: 'lab_informatica', label: 'Lab. de informática', icon: IconDeviceLaptop },
+  { key: 'lab_ciencias', label: 'Lab. de ciências', icon: IconFlask },
+  { key: 'biblioteca', label: 'Biblioteca', icon: IconBook },
+  { key: 'quadra', label: 'Quadra de esportes', icon: IconBallBasketball },
+  { key: 'auditorio', label: 'Auditório', icon: IconMasksTheater },
+  { key: 'banheiro_acessivel', label: 'Banheiro acessível', icon: IconAccessible },
+  { key: 'agua_potavel', label: 'Água potável', icon: IconDroplet },
 ];
 
 /** Versão enxuta usada no mapa (subset da projetada). */

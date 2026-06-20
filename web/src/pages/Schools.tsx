@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { IconSearch, IconDownload } from '@tabler/icons-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Loading, ErrorState } from '../components/ui/State';
@@ -47,7 +48,7 @@ export default function Schools() {
       <Card>
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex items-center gap-2 rounded-xl bg-surface-2 border border-line px-3.5 flex-1">
-            <span>🔍</span>
+            <IconSearch size={18} className="text-ink-faint shrink-0" />
             <input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
@@ -108,9 +109,9 @@ export default function Schools() {
             {data.total > 0 && (
               <button
                 onClick={() => exportarEscolasCSV({ etapa, q: buscaDebounced, uf, localizacao, recorte })}
-                className="shrink-0 rounded-xl bg-mint-500 hover:bg-mint-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors"
+                className="inline-flex items-center gap-1.5 shrink-0 rounded-xl bg-mint-500 hover:bg-mint-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors"
               >
-                ⬇ Exportar CSV
+                <IconDownload size={15} /> Exportar CSV
               </button>
             )}
           </div>

@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
 import { cx } from '../lib/utils';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { Logo } from '../components/Logo';
 
 const perfis = [
@@ -77,8 +78,8 @@ export default function Login() {
           </div>
 
           {dbOff && (
-            <div className="mb-4 rounded-xl bg-sun-100 text-sun-500 px-3 py-2 text-xs">
-              ⚠️ Cadastro/login ainda não está configurado neste servidor (falta o banco de dados).
+            <div className="mb-4 rounded-xl bg-sun-100 text-sun-500 px-3 py-2 text-xs inline-flex items-center gap-1.5">
+              <IconAlertTriangle size={15} className="shrink-0" /> Cadastro/login ainda não está configurado neste servidor (falta o banco de dados).
             </div>
           )}
 

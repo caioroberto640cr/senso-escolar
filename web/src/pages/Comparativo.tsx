@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { IconSearch, IconX } from '@tabler/icons-react';
 import { Card, SectionTitle } from '../components/ui/Card';
 import { Loading } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
@@ -83,7 +84,7 @@ export default function Comparativo() {
       <Card className="h-fit">
         <SectionTitle title="Selecionar escolas" subtitle="Busque e compare até 3 (dados reais)" />
         <div className="flex items-center gap-2 rounded-xl bg-surface-2 border border-line px-3 mb-3">
-          <span>🔍</span>
+          <IconSearch size={18} className="text-ink-faint shrink-0" />
           <input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
@@ -107,7 +108,7 @@ export default function Comparativo() {
                 >
                   <span className="h-2 w-2 rounded-full" style={{ background: corDe(e.id_escola) }} />
                   {e.nome.slice(0, 22)}
-                  <button onClick={() => toggle(e.id_escola)} className="hover:text-brand-700">✕</button>
+                  <button onClick={() => toggle(e.id_escola)} className="hover:text-brand-700 inline-flex" aria-label="Remover"><IconX size={14} /></button>
                 </span>
               );
             })}

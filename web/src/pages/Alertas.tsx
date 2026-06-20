@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconAlertTriangle, IconAlertCircle, IconInfoCircle, IconMapPin, IconClock } from '@tabler/icons-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Loading, ErrorState } from '../components/ui/State';
@@ -8,7 +9,8 @@ import { cx, formatData } from '../lib/utils';
 type Sev = 'critico' | 'atencao' | 'info';
 const sevTone = { critico: 'peach', atencao: 'sun', info: 'sky' } as const;
 const sevLabel = { critico: 'Crítico', atencao: 'Atenção', info: 'Informativo' };
-const sevIcon = { critico: '🔴', atencao: '🟡', info: '🔵' };
+const sevIcon = { critico: IconAlertTriangle, atencao: IconAlertCircle, info: IconInfoCircle };
+const sevColor = { critico: 'text-peach-600', atencao: 'text-sun-500', info: 'text-sky-500' };
 
 export default function Alertas() {
   const [filtro, setFiltro] = useState<Sev | 'todos'>('todos');
@@ -49,9 +51,11 @@ export default function Alertas() {
       </div>
 
       <div className="space-y-3">
-        {lista.map((a) => (
+        {lista.map((a) => {
+          const SevI = sevIcon[a.severidade];
+          return (
           <Card key={a.id_alerta} className="flex items-start gap-4">
-            <div className="text-2xl mt-0.5">{sevIcon[a.severidade]}</div>
+            <SevI size={24} className={cx('mt-0.5 shrink-0', sevColor[a.severidade])} />
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <h3 className="font-semibold text-ink">{a.indicador}</h3>
@@ -60,8 +64,8 @@ export default function Alertas() {
               </div>
               <p className="text-sm text-ink-soft">{a.descricao}</p>
               <div className="flex items-center gap-3 mt-2 text-xs text-ink-faint">
-                {a.nome_escola && <span>📍 {a.nome_escola}</span>}
-                <span>🕒 {formatData(a.data)}</span>
+                {a.nome_escola && <span className="inline-flex items-center gap-1"><IconMapPin size={13} /> {a.nome_escola}</span>}
+                <span className="inline-flex items-center gap-1"><IconClock size={13} /> {formatData(a.data)}</span>
               </div>
             </div>
             {a.id_escola && (
@@ -73,7 +77,8 @@ export default function Alertas() {
               </a>
             )}
           </Card>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

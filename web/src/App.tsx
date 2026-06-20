@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { IconLock } from '@tabler/icons-react';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import MapPage from './pages/MapPage';
@@ -30,7 +31,7 @@ function RequireAuth({ children, adminOnly = false }: { children: ReactNode; adm
   if (adminOnly && !isAdmin)
     return (
       <div className="rounded-2xl bg-surface border border-line p-8 text-center">
-        <p className="text-2xl mb-2">🔒</p>
+        <IconLock size={32} className="mx-auto mb-2 text-ink-faint" />
         <p className="font-semibold text-ink">Acesso restrito</p>
         <p className="text-sm text-ink-soft mt-1">Esta área é exclusiva para administradores.</p>
       </div>
