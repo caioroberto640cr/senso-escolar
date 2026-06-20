@@ -97,3 +97,19 @@ body {
 .leaflet-popup-content {
   margin: 14px 16px;
 }
+
+/* Impressão / "Salvar como PDF": mostra só o conteúdo principal */
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .leaflet-container {
+    page-break-inside: avoid;
+  }
+}

@@ -95,6 +95,12 @@ app.get('/api/decomposicao', rota(async (req, res) => {
 
 // ---------- Escolas (Postgres) ----------
 app.get('/api/escolas/mapa', rota(async (req, res) => res.json(await escolasDb.mapa(req.query as any))));
+app.get('/api/escolas/export', rota(async (req, res) => {
+  const csv = await escolasDb.exportarCSV(req.query as any);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="eduinsight_escolas.csv"');
+  res.send(csv);
+}));
 app.get('/api/escolas/:id', rota(async (req, res) => {
   const e = await escolasDb.escolaPorId(String(req.params.id));
   if (!e) return res.status(404).json({ erro: 'Escola não encontrada' });

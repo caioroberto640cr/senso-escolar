@@ -100,12 +100,15 @@ export default function SchoolDetail() {
               ))}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 no-print">
             <button className="rounded-xl bg-brand-50 hover:bg-brand-100 px-4 py-2 text-sm font-medium text-brand-600 transition-colors">
               ★ Favoritar
             </button>
-            <button className="rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors">
-              Exportar PDF
+            <button
+              onClick={() => window.print()}
+              className="rounded-xl bg-brand-500 hover:bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors"
+            >
+              🖨 Imprimir / PDF
             </button>
           </div>
         </div>

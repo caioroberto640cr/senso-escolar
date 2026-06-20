@@ -154,6 +154,61 @@ export async function dimsEscolas(): Promise<DimEscola[]> {
   return dimsCache;
 }
 
+// ---- Exportação CSV (servidor, sem limite de página) ----
+const DEP_ROTULO: Record<string, string> = {
+  federal: 'Federal', estadual: 'Estadual', municipal: 'Municipal', privada: 'Privada',
+};
+const ETAPA_ROTULO: Record<string, string> = {
+  anos_iniciais: 'Anos Iniciais', anos_finais: 'Anos Finais', medio: 'Ensino Médio',
+};
+const COLS_METRICA: Record<string, { rotulo: string; campo: string }> = {
+  ideb: { rotulo: 'IDEB', campo: 'ideb' },
+  aprovacao: { rotulo: 'Aprovação (%)', campo: 'taxa_aprovacao' },
+  abandono: { rotulo: 'Abandono (%)', campo: 'abandono' },
+  reprovacao: { rotulo: 'Reprovação (%)', campo: 'reprovacao' },
+  saeb: { rotulo: 'Nota SAEB', campo: 'nota_saeb' },
+  distorcao: { rotulo: 'Distorção idade-série (%)', campo: 'distorcao' },
+};
+
+function csvCampo(v: any): string {
+  if (v == null) return '';
+  const s = String(v);
+  return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+export async function exportarCSV(q0: Record<string, any>): Promise<string> {
+  if (!dbReady) return '';
+  const { where, params } = montarFiltros(q0);
+  const etapa = resolverEtapa(q0.etapa);
+  const colsSel = String(q0.cols ?? 'ideb,aprovacao,abandono,reprovacao,saeb,distorcao')
+    .split(',').map((c) => c.trim()).filter((c) => COLS_METRICA[c]);
+
+  const rows = await q<any>(
+    `SELECT e.id_escola, e.nome, e.municipio, e.estado, e.regiao, e.dependencia,
+            e.matriculas, e.porte, e.localizacao, e.recorte,
+            ee.ideb, ee.taxa_aprovacao, ee.abandono, ee.reprovacao, ee.nota_saeb, ee.distorcao
+     ${BASE} WHERE ${where} ORDER BY ee.ideb DESC NULLS LAST LIMIT 50000`,
+    params
+  );
+
+  const header = [
+    'Código INEP', 'Escola', 'Município', 'UF', 'Região', 'Dependência', 'Etapa',
+    ...colsSel.map((c) => COLS_METRICA[c].rotulo),
+    'Matrículas', 'Porte', 'Localização', 'Perfil',
+  ];
+  const linhas = rows.map((r) => {
+    const campos = [
+      r.id_escola, r.nome, r.municipio, r.estado, r.regiao,
+      DEP_ROTULO[r.dependencia] ?? r.dependencia, ETAPA_ROTULO[etapa],
+      ...colsSel.map((c) => r[COLS_METRICA[c].campo]),
+      r.matriculas, r.porte, r.localizacao, r.recorte,
+    ];
+    return campos.map(csvCampo).join(';');
+  });
+  const BOM = String.fromCharCode(0xfeff);
+  return BOM + [header.join(';'), ...linhas].join('\r\n');
+}
+
 export async function contarEscolas(): Promise<number> {
   if (!dbReady) return 0;
   const r = await q<{ n: number }>('SELECT count(*)::int n FROM escolas');

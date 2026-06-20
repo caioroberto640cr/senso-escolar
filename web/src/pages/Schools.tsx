@@ -5,6 +5,7 @@ import { Badge } from '../components/ui/Badge';
 import { Loading, ErrorState } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
+import { exportarEscolasCSV } from '../lib/export';
 import { UFS } from '../data/mock';
 import { etapaLabel } from '../types';
 import { cx, dependenciaLabel, scoreTone } from '../lib/utils';
@@ -100,9 +101,19 @@ export default function Schools() {
         <Loading />
       ) : (
         <>
-          <p className="text-sm text-ink-soft px-1">
-            {data.total.toLocaleString('pt-BR')} escolas encontradas (dados reais INEP)
-          </p>
+          <div className="flex items-center justify-between gap-3 px-1">
+            <p className="text-sm text-ink-soft">
+              {data.total.toLocaleString('pt-BR')} escolas encontradas (dados reais INEP)
+            </p>
+            {data.total > 0 && (
+              <button
+                onClick={() => exportarEscolasCSV({ etapa, q: buscaDebounced, uf, localizacao, recorte })}
+                className="shrink-0 rounded-xl bg-mint-500 hover:bg-mint-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors"
+              >
+                ⬇ Exportar CSV
+              </button>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {data.itens.map((e) => {
