@@ -10,17 +10,33 @@ import type { DimEscola } from './escolasDb.ts';
 import * as ibge from './ibge.ts';
 import { initSchema, dbReady } from './db.ts';
 import {
-  registrar, entrar, eu, autenticar, exigirAdmin,
+  registrar, entrar, eu, sair, autenticar, exigirAdmin,
   listarUsuarios, atualizarUsuario, removerUsuario,
 } from './auth.ts';
+import { verificarCsrf } from './cookies.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = Number(process.env.PORT) || 3333;
 
-app.use(cors());
+// Atrás do proxy do Render (TLS terminado lá): permite req.secure refletir HTTPS.
+app.set('trust proxy', 1);
+
+// CORS com credenciais (cookies). Em produção front+API são mesma origem, então
+// CORS quase não é exercido; ainda assim restringimos a uma allowlist.
+const ORIGENS = (process.env.CORS_ORIGINS || 'http://localhost:5173')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin || ORIGENS.includes(origin)) return cb(null, true); // mesma origem/curl ou allowlist
+    cb(new Error('Origem não permitida pelo CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use((req, _res, next) => { console.log(`${req.method} ${req.url}`); next(); });
+// Proteção CSRF (double-submit) em todas as rotas de API que alteram estado.
+app.use('/api', verificarCsrf);
 
 /** Envolve um handler async, devolvendo 500 em caso de erro (ex.: banco indisponível). */
 const rota = (fn: (req: express.Request, res: express.Response) => Promise<any>) =>
@@ -189,6 +205,7 @@ app.get('/api/escolas', rota(async (req, res) => res.json(await escolasDb.listar
 app.get('/api/auth/status', (_req, res) => res.json({ disponivel: dbReady }));
 app.post('/api/auth/register', registrar);
 app.post('/api/auth/login', entrar);
+app.post('/api/auth/logout', sair);
 app.get('/api/auth/me', autenticar, eu);
 
 // ---------- Gestão de usuários (somente admin) ----------

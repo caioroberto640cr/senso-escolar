@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { q, dbReady } from './db.ts';
+import { lerCookies, definirSessao, limparSessao, COOKIE_TOKEN } from './cookies.ts';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-inseguro-troque-em-producao';
 const PERFIS_CADASTRO = ['pai', 'docente', 'gestor']; // self-cadastro permitido (admin é por promoção)
@@ -26,10 +27,12 @@ function assinar(u: UsuarioRow): string {
   return jwt.sign({ id: u.id, perfil: u.perfil }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-/** Middleware: exige token válido; popula req.user. */
+/** Middleware: exige token válido; popula req.user. Lê do cookie httpOnly
+ *  (navegador) ou do header Authorization: Bearer (clientes de API). */
 export async function autenticar(req: Request, res: Response, next: NextFunction) {
   const h = req.headers.authorization;
-  const token = h?.startsWith('Bearer ') ? h.slice(7) : null;
+  const token = lerCookies(req)[COOKIE_TOKEN]
+    || (h?.startsWith('Bearer ') ? h.slice(7) : null);
   if (!token) return res.status(401).json({ erro: 'Não autenticado' });
   try {
     const payload = jwt.verify(token, JWT_SECRET) as { id: number; perfil: string };
@@ -82,7 +85,8 @@ export async function registrar(req: Request, res: Response) {
       [String(nome).trim(), emailNorm, hash, perfilFinal]
     );
     const user = rows[0];
-    res.status(201).json({ token: assinar(user), usuario: semHash(user) });
+    const csrf = definirSessao(req, res, assinar(user));
+    res.status(201).json({ usuario: semHash(user), csrf });
   } catch (e: any) {
     console.error('registrar:', e.message);
     res.status(500).json({ erro: 'Falha ao cadastrar.' });
@@ -100,7 +104,8 @@ export async function entrar(req: Request, res: Response) {
     if (!user || !(await bcrypt.compare(String(senha), user.senha_hash!)))
       return res.status(401).json({ erro: 'E-mail ou senha incorretos.' });
     if (!user.ativo) return res.status(403).json({ erro: 'Conta desativada. Procure um administrador.' });
-    res.json({ token: assinar(user), usuario: semHash(user) });
+    const csrf = definirSessao(req, res, assinar(user));
+    res.json({ usuario: semHash(user), csrf });
   } catch (e: any) {
     console.error('entrar:', e.message);
     res.status(500).json({ erro: 'Falha ao entrar.' });
@@ -109,6 +114,12 @@ export async function entrar(req: Request, res: Response) {
 
 export async function eu(req: Request, res: Response) {
   res.json({ usuario: (req as any).user });
+}
+
+/** Logout: limpa os cookies de sessão. */
+export function sair(_req: Request, res: Response) {
+  limparSessao(res);
+  res.json({ ok: true });
 }
 
 // ---------- CRUD (admin) ----------

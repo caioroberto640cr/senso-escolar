@@ -11,16 +11,16 @@ export interface Conta {
   criado_em?: string;
 }
 export interface AuthResp {
-  token: string;
   usuario: Conta;
+  csrf?: string;
 }
 
 const BASE = '/api';
-export const TOKEN_KEY = 'eduinsight.token';
 
-function authHeaders(): Record<string, string> {
-  const t = localStorage.getItem(TOKEN_KEY);
-  return t ? { Authorization: `Bearer ${t}` } : {};
+/** Lê o token CSRF do cookie (não-httpOnly) para reenviar nas mutações. */
+function csrfToken(): string {
+  const m = document.cookie.match(/(?:^|;\s*)eduinsight_csrf=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
 }
 
 /** Lê a mensagem de erro do corpo JSON, quando houver. */
@@ -35,7 +35,7 @@ async function erroDe(res: Response, path: string): Promise<Error> {
 }
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { headers: { ...authHeaders() } });
+  const res = await fetch(`${BASE}${path}`, { credentials: 'include' });
   if (!res.ok) throw await erroDe(res, path);
   return res.json() as Promise<T>;
 }
@@ -43,7 +43,8 @@ async function get<T>(path: string): Promise<T> {
 async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken() },
     body: body != null ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw await erroDe(res, path);
@@ -171,6 +172,7 @@ export const api = {
   registrar: (dados: { nome: string; email: string; senha: string; perfil?: string }) =>
     send<AuthResp>('POST', '/auth/register', dados),
   login: (email: string, senha: string) => send<AuthResp>('POST', '/auth/login', { email, senha }),
+  logout: () => send<{ ok: true }>('POST', '/auth/logout'),
   me: () => get<{ usuario: Conta }>('/auth/me'),
 
   // ---------- Gestão de usuários (admin) ----------
