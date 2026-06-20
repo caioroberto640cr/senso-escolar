@@ -101,6 +101,21 @@ export interface Meta {
   gerado_em?: string;
 }
 
+export interface FonteDados {
+  id: string;
+  categoria: string;
+  nome: string;
+  status: 'conectado' | 'sincronizando' | 'erro';
+  ultima: string;
+  registros: string;
+  detalhe: string;
+}
+export interface RespostaFontes {
+  verificado_em: string;
+  fonte_inep: string;
+  fontes: FonteDados[];
+}
+
 export interface EstadoIBGE {
   id: number;
   sigla: string;
@@ -124,6 +139,7 @@ export interface Decomposicao {
 // ---------- Funções ----------
 export const api = {
   meta: () => get<Meta>('/meta'),
+  fontes: () => get<RespostaFontes>('/fontes'),
   indicadoresNacionais: (etapa: EtapaKey) =>
     get<IndicadoresNacionais>(`/indicadores/nacionais?etapa=${etapa}`),
   indicadoresRegioes: (etapa: EtapaKey) => get<AggRegiao[]>(`/indicadores/regioes?etapa=${etapa}`),

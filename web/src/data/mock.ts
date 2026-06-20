@@ -26,11 +26,4 @@ export const usuarioAtual: Usuario = {
   },
 };
 
-// Fontes de dados — status das integrações (reflete as fontes reais usadas)
-export const fontes = [
-  { nome: 'INEP — IDEB 2023 (Anos Iniciais)', status: 'conectado', ultima: '2024-09-01', registros: '41.295 escolas' },
-  { nome: 'INEP — IDEB 2023 (Anos Finais)', status: 'conectado', ultima: '2024-09-01', registros: '31.092 escolas' },
-  { nome: 'INEP — IDEB 2023 (Ensino Médio)', status: 'conectado', ultima: '2024-09-01', registros: '14.457 escolas' },
-  { nome: 'IBGE — Localidades (API)', status: 'conectado', ultima: 'tempo real', registros: '27 UFs · 5.570 municípios' },
-  { nome: 'SAEB — Microdados', status: 'erro', ultima: '—', registros: '—' },
-];
+// O status das fontes de dados agora vem da API real (GET /api/fontes) — ver src/pages/Fontes.tsx.

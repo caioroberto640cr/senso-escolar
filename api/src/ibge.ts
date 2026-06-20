@@ -37,6 +37,20 @@ export async function municipios(uf: string) {
   return data.map((m) => ({ id: m.id, nome: m.nome }));
 }
 
+/** Checa, ao vivo (sem cache), se a API do IBGE está respondendo. */
+export async function disponivel(timeoutMs = 4000): Promise<boolean> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${BASE}/regioes`, { signal: ctrl.signal });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /** Malha (GeoJSON) dos estados, com sigla/nome embutidos nas features (cache 12h). */
 export async function malhaEstados() {
   const geo = await cached<any>(

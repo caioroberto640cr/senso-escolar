@@ -34,6 +34,83 @@ const rota = (fn: (req: express.Request, res: express.Response) => Promise<any>)
 app.get('/api/health', (_req, res) => res.json({ ok: true, escolas: meta.total_escolas ?? 0 }));
 app.get('/api/meta', (_req, res) => res.json(meta));
 
+// ---------- Fontes de dados (status real: contagens no Postgres + ping no IBGE) ----------
+const ET_LABEL: Record<string, string> = {
+  anos_iniciais: 'Anos Iniciais', anos_finais: 'Anos Finais', medio: 'Ensino Médio',
+};
+const fmtN = (n: number) => n.toLocaleString('pt-BR');
+
+app.get('/api/fontes', rota(async (_req, res) => {
+  const verificado_em = new Date().toISOString();
+  const dataInep = String(meta.gerado_em ?? '').slice(0, 10) || '—';
+  const cont = await escolasDb.contagemFontes();
+  const fontes: any[] = [];
+  const erroBanco = { status: 'erro', ultima: '—', registros: 'sem dados' };
+
+  // IDEB — uma fonte por etapa
+  for (const key of ['anos_iniciais', 'anos_finais', 'medio']) {
+    const row = cont?.etapas.find((e) => e.etapa === key);
+    fontes.push({
+      id: `ideb_${key}`, categoria: 'INEP',
+      nome: `INEP — IDEB 2023 (${ET_LABEL[key]})`,
+      ...(row
+        ? { status: 'conectado', ultima: dataInep, registros: `${fmtN(row.n)} escolas` }
+        : erroBanco),
+      detalhe: row
+        ? `IDEB, aprovação e proficiência SAEB por escola nesta etapa. Carga do dataset: ${dataInep}.`
+        : 'Banco indisponível — rode "npm run etl" e "npm run seed".',
+    });
+  }
+
+  // SAEB — proficiência (vem junto do IDEB, não há ingestão separada de microdados)
+  const saebN = cont ? cont.etapas.reduce((s, e) => s + e.saeb, 0) : 0;
+  fontes.push({
+    id: 'saeb', categoria: 'SAEB',
+    nome: 'SAEB — Proficiência (via INEP/IDEB)',
+    ...(saebN > 0
+      ? { status: 'conectado', ultima: dataInep, registros: `${fmtN(saebN)} resultados` }
+      : erroBanco),
+    detalhe: 'A nota SAEB (proficiência média padronizada) é integrada junto ao IDEB — o próprio IDEB é calculado a partir dela. Não há ingestão separada de microdados do SAEB.',
+  });
+
+  // Censo Escolar
+  const censoN = cont?.escolas.censo ?? 0;
+  fontes.push({
+    id: 'censo', categoria: 'INEP',
+    nome: 'INEP — Censo Escolar 2023',
+    ...(censoN > 0
+      ? { status: 'conectado', ultima: dataInep, registros: `${fmtN(censoN)} escolas` }
+      : erroBanco),
+    detalhe: 'Infraestrutura, matrículas, porte e localização por escola.',
+  });
+
+  // Rendimento + Distorção idade-série (TDI)
+  const abandN = cont ? cont.etapas.reduce((s, e) => s + e.aband, 0) : 0;
+  fontes.push({
+    id: 'rendimento', categoria: 'INEP',
+    nome: 'INEP — Rendimento + Distorção (TDI) 2023',
+    ...(abandN > 0
+      ? { status: 'conectado', ultima: dataInep, registros: `${fmtN(abandN)} registros` }
+      : erroBanco),
+    detalhe: 'Taxas de abandono/reprovação e distorção idade-série por escola e etapa.',
+  });
+
+  // IBGE — checagem ao vivo
+  const ibgeOk = await ibge.disponivel();
+  fontes.push({
+    id: 'ibge', categoria: 'IBGE',
+    nome: 'IBGE — Localidades (API)',
+    status: ibgeOk ? 'conectado' : 'erro',
+    ultima: ibgeOk ? 'tempo real' : '—',
+    registros: '27 UFs · 5.570 municípios',
+    detalhe: ibgeOk
+      ? 'API pública do IBGE respondendo agora. Usada para geografia e malha de estados (cache de 12h).'
+      : 'A API do IBGE não respondeu nesta verificação. Tente novamente em instantes.',
+  });
+
+  res.json({ verificado_em, fonte_inep: dataInep, fontes });
+}));
+
 // ---------- Indicadores (agregados reais por etapa) ----------
 app.get('/api/indicadores/nacionais', (req, res) => res.json(agregados[resolverEtapa(req.query.etapa)]?.nacional ?? {}));
 app.get('/api/indicadores/regioes', (req, res) => res.json(agregados[resolverEtapa(req.query.etapa)]?.regiao ?? []));

@@ -214,3 +214,24 @@ export async function contarEscolas(): Promise<number> {
   const r = await q<{ n: number }>('SELECT count(*)::int n FROM escolas');
   return (r[0] as any).n;
 }
+
+// ---- Contagens reais para a aba "Fontes de Dados" ----
+export interface ContagemEtapa { etapa: string; n: number; saeb: number; aband: number; dist: number }
+export interface ContagemFontes {
+  etapas: ContagemEtapa[];
+  escolas: { total: number; censo: number };
+}
+export async function contagemFontes(): Promise<ContagemFontes | null> {
+  if (!dbReady) return null;
+  const [etapas, esc] = await Promise.all([
+    q<ContagemEtapa>(
+      `SELECT etapa, count(*)::int n, count(nota_saeb)::int saeb,
+              count(abandono)::int aband, count(distorcao)::int dist
+       FROM escola_etapa GROUP BY etapa`
+    ),
+    q<{ total: number; censo: number }>(
+      'SELECT count(*)::int total, count(matriculas)::int censo FROM escolas'
+    ),
+  ]);
+  return { etapas, escolas: esc[0] as any };
+}
