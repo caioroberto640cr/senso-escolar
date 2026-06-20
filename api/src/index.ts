@@ -24,12 +24,14 @@ app.set('trust proxy', 1);
 
 // CORS com credenciais (cookies). Em produção front+API são mesma origem, então
 // CORS quase não é exercido; ainda assim restringimos a uma allowlist.
-const ORIGENS = (process.env.CORS_ORIGINS || 'http://localhost:5173')
+const ORIGENS = (process.env.CORS_ORIGINS || 'http://localhost:5173,https://eduinsight-25ys.onrender.com')
   .split(',').map((s) => s.trim()).filter(Boolean);
 app.use(cors({
   origin(origin, cb) {
-    if (!origin || ORIGENS.includes(origin)) return cb(null, true); // mesma origem/curl ou allowlist
-    cb(new Error('Origem não permitida pelo CORS'));
+    // Sem Origin (navegação/curl/same-origin GET) ou na allowlist → libera com headers CORS.
+    // Origem não listada → NÃO derruba a requisição (same-origin não precisa de CORS);
+    // apenas não envia os headers, então o navegador bloqueia cross-origin de terceiros.
+    cb(null, !origin || ORIGENS.includes(origin));
   },
   credentials: true,
 }));
