@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
 import { cx } from '../lib/utils';
+import { Logo } from '../components/Logo';
 
 const perfis = [
   { v: 'pai', label: 'Pai / Responsável' },
@@ -54,12 +55,8 @@ export default function Login() {
     <div className="min-h-screen grid place-items-center p-6 bg-canvas">
       <div className="w-full max-w-md">
         {/* Marca */}
-        <Link to="/" className="flex items-center justify-center gap-2.5 mb-6">
-          <div className="h-10 w-10 rounded-xl bg-brand-500 grid place-items-center text-white text-lg font-bold">E</div>
-          <div className="leading-tight">
-            <p className="font-semibold text-ink text-lg">EduInsight</p>
-            <p className="text-xs text-ink-faint">BI Educacional</p>
-          </div>
+        <Link to="/" className="flex items-center justify-center mb-6">
+          <Logo tileSize={44} />
         </Link>
 
         <div className="rounded-2xl bg-surface border border-line shadow-[0_8px_24px_-16px_rgba(34,90,45,0.3)] p-6">

@@ -1,54 +1,56 @@
 @import 'tailwindcss';
 @import 'leaflet/dist/leaflet.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap');
 
 /* ===========================================================
-   EduInsight BI — Tema Pastel / Cores Claras
+   EduInsight BI — Tema vivo (verde + dourado + azul + coral)
    =========================================================== */
 @theme {
   /* Fundo geral e superfícies */
-  --color-canvas: #f7f6fc;
+  --color-canvas: #f4f7f1;
   --color-surface: #ffffff;
-  --color-surface-2: #fbfaff;
+  --color-surface-2: #f7faf5;
 
-  /* Verde forte e chapado (cor primária) */
-  --color-brand-50: #eaf4ec;
-  --color-brand-100: #cfe8d4;
-  --color-brand-200: #a3d3ac;
-  --color-brand-300: #6fb87e;
-  --color-brand-400: #43a85a;
-  --color-brand-500: #2f8f43;
-  --color-brand-600: #25702f;
+  /* Verde vivo (cor primária) */
+  --color-brand-50: #e4f5ea;
+  --color-brand-100: #bfe9cd;
+  --color-brand-200: #8ad5a1;
+  --color-brand-300: #4cbe70;
+  --color-brand-400: #23a851;
+  --color-brand-500: #17a24a;
+  --color-brand-600: #0e7a38;
 
-  /* Menta (positivo / sucesso) */
-  --color-mint-100: #dcf5ea;
-  --color-mint-200: #bdecd7;
-  --color-mint-500: #57c79a;
-  --color-mint-600: #3da981;
+  /* Teal (positivo / sucesso) */
+  --color-mint-100: #d6f2ea;
+  --color-mint-200: #a7e5d2;
+  --color-mint-500: #14b88a;
+  --color-mint-600: #0e916c;
 
-  /* Pêssego / coral (alerta) */
-  --color-peach-100: #fde7e1;
-  --color-peach-200: #fbd2c7;
-  --color-peach-500: #f0876a;
-  --color-peach-600: #e26a4a;
+  /* Coral (alerta / crítico) */
+  --color-peach-100: #fce4df;
+  --color-peach-200: #f7c2b6;
+  --color-peach-500: #e2463a;
+  --color-peach-600: #a82e22;
 
-  /* Céu (informação) */
-  --color-sky-100: #dcefff;
-  --color-sky-200: #bfe4fb;
-  --color-sky-500: #5ab6e8;
+  /* Azul (informação) */
+  --color-sky-100: #dcebfb;
+  --color-sky-200: #b6d3f6;
+  --color-sky-500: #1f6fe0;
 
-  /* Amarelo pastel (atenção) */
-  --color-sun-100: #fdf3d4;
-  --color-sun-200: #fbe9ad;
-  --color-sun-500: #e8c55a;
+  /* Dourado (atenção) */
+  --color-sun-100: #fcebcb;
+  --color-sun-200: #f8d88e;
+  --color-sun-500: #f4a11e;
 
-  /* Texto */
-  --color-ink: #3a3450;
-  --color-ink-soft: #6b6580;
-  --color-ink-faint: #9b96ad;
+  /* Texto (verde-tinta) */
+  --color-ink: #15241b;
+  --color-ink-soft: #4f5e54;
+  --color-ink-faint: #8a968d;
 
-  --color-line: #ece9f5;
+  --color-line: #e5e9e2;
 
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Sora', 'Inter', system-ui, sans-serif;
 
   --radius-xl: 1.25rem;
 }
@@ -100,7 +102,6 @@ body {
 
 /* Impressão / "Salvar como PDF": mostra só o conteúdo principal */
 @media print {
-  aside,
   header,
   .no-print {
     display: none !important;

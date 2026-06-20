@@ -35,7 +35,7 @@ export function SectionTitle({
   return (
     <div className="flex items-start justify-between gap-4 mb-4">
       <div>
-        <h2 className="text-lg font-semibold text-ink">{title}</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight text-ink">{title}</h2>
         {subtitle && <p className="text-sm text-ink-soft mt-0.5">{subtitle}</p>}
       </div>
       {action}

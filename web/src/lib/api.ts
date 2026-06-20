@@ -166,6 +166,7 @@ export const api = {
   estados: () => get<EstadoIBGE[]>('/geografia/estados'),
   decomposicao: (por: string[]) => get<Decomposicao>(`/decomposicao?por=${por.join(',')}`),
   malhaEstados: () => get<any>('/geografia/malha-estados'),
+  malhaPais: () => get<any>('/geografia/malha-pais'),
 
   // ---------- Autenticação ----------
   authStatus: () => get<{ disponivel: boolean }>('/auth/status'),

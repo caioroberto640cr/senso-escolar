@@ -20,8 +20,11 @@ App publicada no Render (repo `caioroberto640cr/senso-escolar`).
 2. **Dados do INEP nunca ficam no frontend.** Vêm sempre da API via `web/src/lib/api.ts`
    (hook `useFetch`). `web/src/data/mock.ts` guarda **só** dados de aplicação (usuário
    logado, status de fontes) — nunca indicadores.
-3. **Cor primária: verde chapado `#2f8f43`** (ramo `brand`, tokens `@theme` em
-   `web/src/index.css`). Sem lavanda/roxo, sem neon, sem gradiente pesado.
+3. **Cor primária: verde vivo `#17a24a`** (ramo `brand`, tokens `@theme` em
+   `web/src/index.css`), com apoio de dourado (`sun #f4a11e`), azul (`sky #1f6fe0`) e
+   coral (`peach #e2463a`). Paleta forte, **sem neon** e sem gradiente pesado. Marca:
+   logo "livro + barras" + wordmark **Sora** em duas cores (`components/Logo.tsx`);
+   navegação em **abas no topo** (`components/Layout.tsx`).
 4. **Postgres (Neon)** é a fonte das **escolas** (tabelas `escolas` + `escola_etapa`,
    ver `seed-db.ts`/`escolasDb.ts`) e das **contas de usuário** (`db.ts` + `auth.ts`,
    bcrypt + JWT). Variáveis: `DATABASE_URL`, `JWT_SECRET` (ver `api/.env.example`).

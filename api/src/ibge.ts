@@ -51,6 +51,14 @@ export async function disponivel(timeoutMs = 4000): Promise<boolean> {
   }
 }
 
+/** Contorno do Brasil (GeoJSON do país inteiro) — usado para recortar o mapa (cache 12h). */
+export async function malhaPais() {
+  return cached<any>(
+    'malha-br',
+    'https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo+json&qualidade=intermediaria'
+  );
+}
+
 /** Malha (GeoJSON) dos estados, com sigla/nome embutidos nas features (cache 12h). */
 export async function malhaEstados() {
   const geo = await cached<any>(

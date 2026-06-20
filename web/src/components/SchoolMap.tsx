@@ -41,6 +41,36 @@ function FitBounds({ escolas }: { escolas: EscolaMapa[] }) {
   return null;
 }
 
+/** Recorte do Brasil: cobre tudo fora do país e trava a navegação dentro dele. */
+function MascaraBrasil({ geo }: { geo: any }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!geo) return;
+    const mundo: [number, number][] = [[-85, -180], [-85, 180], [85, 180], [85, -180]];
+    const buracos: [number, number][][] = [];
+    const addPoly = (poly: any[]) =>
+      buracos.push((poly[0] as [number, number][]).map(([lng, lat]) => [lat, lng] as [number, number]));
+    const feats = geo.type === 'FeatureCollection' ? geo.features : [geo];
+    for (const f of feats) {
+      const g = f.geometry ?? f;
+      if (g.type === 'Polygon') addPoly(g.coordinates);
+      else if (g.type === 'MultiPolygon') g.coordinates.forEach((p: any) => addPoly(p));
+    }
+    const mascara = L.polygon([mundo, ...buracos], {
+      stroke: false, fillColor: '#e8eef3', fillOpacity: 1, interactive: false,
+    }).addTo(map);
+    const contorno = L.geoJSON(geo, {
+      style: () => ({ color: '#17a24a', weight: 1.5, fill: false }), interactive: false,
+    }).addTo(map);
+    const b = contorno.getBounds();
+    map.setMaxBounds(b.pad(0.12));
+    map.setMinZoom(Math.max(3, Math.floor(map.getBoundsZoom(b))));
+    setTimeout(() => { map.invalidateSize(); map.fitBounds(b, { padding: [8, 8] }); }, 70);
+    return () => { map.removeLayer(mascara); map.removeLayer(contorno); };
+  }, [geo, map]);
+  return null;
+}
+
 /** Reporta a área visível (debounced) — usado para carregar só as escolas em tela. */
 function ViewportReporter({ onViewport }: { onViewport: (b: Bbox) => void }) {
   const t = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -65,6 +95,7 @@ export function SchoolMap({
   interactive = true,
   cluster = true,
   onViewport,
+  mascaraBrasil,
 }: {
   escolas: EscolaMapa[];
   className?: string;
@@ -72,6 +103,8 @@ export function SchoolMap({
   cluster?: boolean;
   /** Se fornecido, o mapa carrega por área visível (não usa auto-zoom). */
   onViewport?: (b: Bbox) => void;
+  /** GeoJSON do contorno do Brasil: recorta o mapa e trava a navegação no país. */
+  mascaraBrasil?: any;
 }) {
   const navigate = useNavigate();
 
@@ -135,6 +168,7 @@ export function SchoolMap({
         attribution='&copy; OpenStreetMap &copy; CARTO'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
+      {mascaraBrasil ? <MascaraBrasil geo={mascaraBrasil} /> : null}
       {onViewport ? <ViewportReporter onViewport={onViewport} /> : <FitBounds escolas={escolas} />}
       {cluster ? (
         <MarkerClusterGroup chunkedLoading maxClusterRadius={50}>

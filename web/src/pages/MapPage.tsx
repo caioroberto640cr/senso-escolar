@@ -49,6 +49,7 @@ export default function MapPage() {
     [etapa, uf, regiao, dep, desempenho, localizacao, recorte, infra, bbox]
   );
   const malha = useFetch(() => api.malhaEstados(), []);
+  const pais = useFetch(() => api.malhaPais(), []);
   const estadosAgg = useFetch(() => api.indicadoresEstados(etapa), [etapa]);
 
   const toggleInfra = (v: string) =>
@@ -210,7 +211,7 @@ export default function MapPage() {
       </Card>
 
       {/* Mapa */}
-      <Card padded={false} className="overflow-hidden relative">
+      <Card padded={false} className="overflow-hidden relative min-h-[480px]">
         {vista === 'escolas' ? (
           <>
             <div className="absolute z-[500] top-4 left-4 rounded-xl bg-surface/90 backdrop-blur px-4 py-2.5 shadow-sm border border-line">
@@ -223,6 +224,7 @@ export default function MapPage() {
             </div>
             <SchoolMap
               escolas={data?.itens ?? []}
+              mascaraBrasil={pais.data}
               onViewport={(b) => setBbox(`${b.oeste},${b.sul},${b.leste},${b.norte}`)}
             />
             {data && data.itens.length === 0 && (
