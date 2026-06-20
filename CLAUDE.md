@@ -7,7 +7,10 @@ App publicada no Render (repo `caioroberto640cr/senso-escolar`).
 ## Stack
 
 - **api/** — Node 22 + Express 4 + TypeScript, rodado por **tsx** (sem build). ESM.
-  Dados ficam em **JSON processado** em `api/data/processed/` (carregado em memória).
+  **Escolas (64k) ficam no Postgres (Neon)**; a API consulta via `src/escolasDb.ts`.
+  Agregados (nacional/região/estado), alertas e meta ficam em JSON pequeno em
+  `api/data/processed/` (versionado). Pipeline: `npm run etl` (gera os JSON) →
+  `npm run seed` (carrega `escolas.json` no Postgres).
 - **web/** — React 19 + Vite + TS + **Tailwind v4**, react-router, Leaflet (+cluster), Recharts.
 - **Produção**: serviço **único** no Render — o Express serve `web/dist` **e** `/api`.
 
@@ -19,10 +22,11 @@ App publicada no Render (repo `caioroberto640cr/senso-escolar`).
    logado, status de fontes) — nunca indicadores.
 3. **Cor primária: verde chapado `#2f8f43`** (ramo `brand`, tokens `@theme` em
    `web/src/index.css`). Sem lavanda/roxo, sem neon, sem gradiente pesado.
-4. **Indicadores do INEP**: sem banco SQL — a "fonte da verdade" é o JSON do ETL.
-   **Contas de usuário** (cadastro/login): ficam em **Postgres (Neon)** via `api/src/db.ts`
-   + `auth.ts` (hash bcrypt + JWT). Variáveis: `DATABASE_URL`, `JWT_SECRET` (ver
-   `api/.env.example`); sem `DATABASE_URL` o login degrada com 503 e o resto segue normal.
+4. **Postgres (Neon)** é a fonte das **escolas** (tabelas `escolas` + `escola_etapa`,
+   ver `seed-db.ts`/`escolasDb.ts`) e das **contas de usuário** (`db.ts` + `auth.ts`,
+   bcrypt + JWT). Variáveis: `DATABASE_URL`, `JWT_SECRET` (ver `api/.env.example`).
+   Sem `DATABASE_URL` a app não tem dados de escola nem login. `escolas.json` NÃO é
+   versionado (regerado por `etl` e carregado por `seed`).
 5. Textos da UI e nomes/comentários **em português**.
 
 ## Onde colocar
@@ -35,9 +39,10 @@ App publicada no Render (repo `caioroberto640cr/senso-escolar`).
 ## Rodar local
 
 ```bash
-cd api && npm install && npm run etl && npm start   # API :3333 (etl = baixa dados reais)
-cd web && npm install && npm run dev                # Web :5173 (proxy /api -> :3333)
+cd api && npm install && npm run etl && npm run seed && npm start   # etl=baixa/gera JSON · seed=carrega no Postgres
+cd web && npm install && npm run dev                                # Web :5173 (proxy /api -> :3333)
 ```
+(Precisa de `DATABASE_URL` no `api/.env`. O `etl`/`seed` só são necessários ao atualizar os dados.)
 
 ## Skills do projeto (`.claude/skills/`)
 

@@ -1,4 +1,5 @@
-// Carrega os dados processados (reais, multi-etapa) do ETL para a memória
+// Carrega apenas os AGREGADOS pequenos (nacional/região/estado, alertas, meta) em memória.
+// As ESCOLAS (64k) agora vivem no Postgres — ver escolasDb.ts.
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -22,27 +23,11 @@ export interface IndicadorEtapa {
 export interface Censo {
   matriculas: number | null;
   porte: string | null;
-  localizacao: string | null; // urbana | rural
-  recorte: string | null; // indigena | quilombola | assentamento
+  localizacao: string | null;
+  recorte: string | null;
   infra: Record<string, boolean>;
 }
 
-export interface Escola {
-  id_escola: string;
-  nome: string;
-  municipio: string;
-  cod_municipio: number;
-  estado: string;
-  regiao: string;
-  dependencia: string;
-  etapas: EtapaKey[];
-  latitude: number;
-  longitude: number;
-  indicadores: Partial<Record<EtapaKey, IndicadorEtapa>>;
-  censo?: Censo;
-}
-
-/** Escola "achatada" para uma etapa específica (o que o frontend de lista/mapa consome). */
 export interface EscolaProjetada {
   id_escola: string;
   nome: string;
@@ -63,30 +48,6 @@ export interface EscolaProjetada {
   censo?: Censo;
 }
 
-export function projetar(e: Escola, etapa: EtapaKey): EscolaProjetada | null {
-  const ind = e.indicadores[etapa];
-  if (!ind) return null;
-  return {
-    id_escola: e.id_escola,
-    nome: e.nome,
-    municipio: e.municipio,
-    estado: e.estado,
-    regiao: e.regiao,
-    dependencia: e.dependencia,
-    etapas: e.etapas,
-    latitude: e.latitude,
-    longitude: e.longitude,
-    ideb: ind.ideb,
-    taxa_aprovacao: ind.taxa_aprovacao,
-    nota_saeb: ind.nota_saeb,
-    abandono: ind.abandono ?? null,
-    distorcao: ind.distorcao ?? null,
-    score_geral: ind.ideb,
-    historico_ideb: ind.historico_ideb,
-    censo: e.censo,
-  };
-}
-
 export function resolverEtapa(v: unknown): EtapaKey {
   return ETAPAS.includes(v as EtapaKey) ? (v as EtapaKey) : 'anos_iniciais';
 }
@@ -97,13 +58,6 @@ function ler<T>(arquivo: string, fallback: T): T {
   return JSON.parse(readFileSync(p, 'utf8')) as T;
 }
 
-export const escolas = ler<Escola[]>('escolas.json', []);
 export const agregados = ler<any>('agregados.json', {});
 export const alertas = ler<any[]>('alertas.json', []);
 export const meta = ler<any>('meta.json', {});
-
-export const porId = new Map(escolas.map((e) => [e.id_escola, e]));
-
-if (escolas.length === 0) {
-  console.warn('⚠ Nenhuma escola carregada. Rode "npm run etl" primeiro.');
-}

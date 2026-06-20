@@ -1,4 +1,6 @@
 node_modules/
 # Arquivos brutos baixados do INEP (grandes) — regenerados pelo ETL
 data/raw/
-# Os JSON processados (data/processed/) SÃO versionados para o deploy funcionar
+# escolas.json (51MB) agora vai para o Postgres (npm run seed) — não versionar
+data/processed/escolas.json
+# Os demais JSON processados (agregados/alertas/meta) SÃO versionados (pequenos)

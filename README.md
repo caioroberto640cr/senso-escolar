@@ -43,11 +43,15 @@ Os dados **não são fictícios**. A API serve:
 
 ## Como rodar (API + Web)
 
+As **escolas** ficam em **Postgres (Neon)**; agregados/alertas/meta são JSON pequenos.
+Defina `DATABASE_URL` em `api/.env` (ver `api/.env.example`).
+
 **1. API** (porta 3333):
 ```bash
 cd api
 npm install
-npm run etl     # baixa e processa os dados reais do INEP/IBGE (uma vez)
+npm run etl     # baixa/processa dados do INEP/IBGE -> data/processed/*.json (uma vez)
+npm run seed    # carrega escolas.json no Postgres (uma vez por atualização)
 npm start       # sobe a API em http://localhost:3333
 ```
 

@@ -6,6 +6,7 @@
   "description": "API única centralizada do EduInsight — geografia (IBGE) + indicadores (INEP/IDEB)",
   "scripts": {
     "etl": "node --max-old-space-size=4096 node_modules/tsx/dist/cli.mjs scripts/etl.ts",
+    "seed": "node --max-old-space-size=4096 node_modules/tsx/dist/cli.mjs scripts/seed-db.ts",
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts"
   },
