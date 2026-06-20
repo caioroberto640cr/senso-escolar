@@ -1,5 +1,6 @@
 import { Card } from './Card';
 import { cx } from '../../lib/utils';
+import { InfoTip } from './InfoTip';
 import type { ReactNode } from 'react';
 
 export function MetricCard({
@@ -10,6 +11,7 @@ export function MetricCard({
   icon,
   tone = 'brand',
   invertTrend = false,
+  info,
 }: {
   label: string;
   value: string | number;
@@ -19,6 +21,8 @@ export function MetricCard({
   tone?: 'brand' | 'mint' | 'peach' | 'sky';
   /** Para indicadores onde cair é bom (ex.: evasão) */
   invertTrend?: boolean;
+  /** Texto de ajuda exibido num tooltip ⓘ ao lado do rótulo. */
+  info?: string;
 }) {
   const toneBg = {
     brand: 'bg-brand-100 text-brand-600',
@@ -30,10 +34,13 @@ export function MetricCard({
   const positivo = variacao === undefined ? null : invertTrend ? variacao < 0 : variacao > 0;
 
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-ink-soft">{label}</p>
+          <p className="text-sm text-ink-soft">
+            {label}
+            {info && <InfoTip texto={info} />}
+          </p>
           <p className="mt-1.5 text-3xl font-semibold text-ink">
             {value}
             {unit && <span className="text-base font-medium text-ink-faint ml-1">{unit}</span>}

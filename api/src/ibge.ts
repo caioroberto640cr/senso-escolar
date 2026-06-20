@@ -36,3 +36,18 @@ export async function municipios(uf: string) {
   );
   return data.map((m) => ({ id: m.id, nome: m.nome }));
 }
+
+/** Malha (GeoJSON) dos estados, com sigla/nome embutidos nas features (cache 12h). */
+export async function malhaEstados() {
+  const geo = await cached<any>(
+    'malha-uf',
+    'https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=UF'
+  );
+  const ests = await estados();
+  const porCod = new Map(ests.map((e) => [String(e.id), e]));
+  for (const f of geo.features ?? []) {
+    const e = porCod.get(String(f.properties?.codarea));
+    if (e) { f.properties.sigla = e.sigla; f.properties.nome = e.nome; }
+  }
+  return geo;
+}

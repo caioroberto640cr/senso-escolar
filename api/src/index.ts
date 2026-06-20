@@ -214,6 +214,10 @@ app.get('/api/geografia/regioes', async (_req, res) => {
   try { res.json(await ibge.regioes()); }
   catch (e: any) { res.status(502).json({ erro: 'IBGE indisponível', detalhe: e.message }); }
 });
+app.get('/api/geografia/malha-estados', async (_req, res) => {
+  try { res.json(await ibge.malhaEstados()); }
+  catch (e: any) { res.status(502).json({ erro: 'IBGE indisponível', detalhe: e.message }); }
+});
 app.get('/api/geografia/estados/:uf/municipios', async (req, res) => {
   try { res.json(await ibge.municipios(req.params.uf)); }
   catch (e: any) { res.status(502).json({ erro: 'IBGE indisponível', detalhe: e.message }); }

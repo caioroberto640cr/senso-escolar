@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { SchoolMap } from '../components/SchoolMap';
+import { ChoroplethMap } from '../components/ChoroplethMap';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
+import { etapaLabel } from '../types';
 import { UFS, REGIOES } from '../data/mock';
 import { cx } from '../lib/utils';
 
@@ -39,12 +41,15 @@ export default function MapPage() {
   const [recorte, setRecorte] = useState('todas');
   const [infra, setInfra] = useState<string[]>([]);
   const [bbox, setBbox] = useState<string | undefined>(undefined);
+  const [vista, setVista] = useState<'escolas' | 'estados'>('escolas');
 
   const { etapa } = useEtapa();
   const { data, loading } = useFetch(
     () => api.mapa({ etapa, uf, regiao, dependencia: dep, desempenho, localizacao, recorte, infra: infra.join(','), bbox }),
     [etapa, uf, regiao, dep, desempenho, localizacao, recorte, infra, bbox]
   );
+  const malha = useFetch(() => api.malhaEstados(), []);
+  const estadosAgg = useFetch(() => api.indicadoresEstados(etapa), [etapa]);
 
   const toggleInfra = (v: string) =>
     setInfra((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
@@ -53,24 +58,50 @@ export default function MapPage() {
     <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 h-[calc(100vh-7rem)]">
       {/* Painel de filtros */}
       <Card className="flex flex-col overflow-y-auto">
-        <h2 className="text-base font-semibold text-ink mb-1">Filtros do mapa</h2>
-        <p className="text-sm text-ink-soft mb-1">
-          {data ? (
-            <>
-              <strong className="text-ink">{data.exibidas.toLocaleString('pt-BR')}</strong> na área
-              {' · '}
-              {data.total.toLocaleString('pt-BR')} no total
-            </>
-          ) : (
-            '...'
-          )}
-        </p>
-        <p className="text-[11px] text-ink-faint mb-4">
-          {data?.amostrado
-            ? 'Muitas escolas nesta área — dê mais zoom para ver todas.'
-            : 'Dê zoom no mapa para carregar as escolas da região.'}
-        </p>
+        {/* Alternância de visualização */}
+        <div className="flex rounded-xl bg-brand-50 p-1 mb-3">
+          {([['escolas', 'Escolas'], ['estados', 'Estados (IDEB)']] as const).map(([v, lbl]) => (
+            <button
+              key={v}
+              onClick={() => setVista(v)}
+              className={cx(
+                'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-colors',
+                vista === v ? 'bg-brand-500 text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+              )}
+            >
+              {lbl}
+            </button>
+          ))}
+        </div>
 
+        {vista === 'estados' ? (
+          <p className="text-sm text-ink-soft mb-4">
+            Mapa de calor do <strong className="text-ink">IDEB médio por estado</strong> · {etapaLabel(etapa)}.
+            Passe o mouse num estado para ver o valor.
+          </p>
+        ) : (
+          <>
+            <h2 className="text-base font-semibold text-ink mb-1">Filtros do mapa</h2>
+            <p className="text-sm text-ink-soft mb-1">
+              {data ? (
+                <>
+                  <strong className="text-ink">{data.exibidas.toLocaleString('pt-BR')}</strong> na área
+                  {' · '}
+                  {data.total.toLocaleString('pt-BR')} no total
+                </>
+              ) : (
+                '...'
+              )}
+            </p>
+            <p className="text-[11px] text-ink-faint mb-4">
+              {data?.amostrado
+                ? 'Muitas escolas nesta área — dê mais zoom para ver todas.'
+                : 'Dê zoom no mapa para carregar as escolas da região.'}
+            </p>
+          </>
+        )}
+
+        {vista === 'escolas' && (<>
         <label className="block text-xs font-semibold text-ink-soft mb-1.5 mt-2">Região</label>
         <select
           value={regiao}
@@ -175,28 +206,37 @@ export default function MapPage() {
         >
           Limpar filtros
         </button>
+        </>)}
       </Card>
 
       {/* Mapa */}
       <Card padded={false} className="overflow-hidden relative">
-        <div className="absolute z-[500] top-4 left-4 rounded-xl bg-surface/90 backdrop-blur px-4 py-2.5 shadow-sm border border-line">
-          <p className="text-xs font-semibold text-ink-soft mb-1.5">Legenda — IDEB</p>
-          <div className="flex items-center gap-3 text-xs text-ink-soft">
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-mint-500" /> Bom</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sun-500" /> Atenção</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-peach-500" /> Crítico</span>
-          </div>
-        </div>
-        <SchoolMap
-          escolas={data?.itens ?? []}
-          onViewport={(b) => setBbox(`${b.oeste},${b.sul},${b.leste},${b.norte}`)}
-        />
-        {data && data.itens.length === 0 && (
-          <div className="absolute z-[500] inset-x-0 top-1/2 -translate-y-1/2 text-center pointer-events-none">
-            <span className="inline-block rounded-xl bg-surface/90 backdrop-blur px-4 py-2 text-sm text-ink-soft shadow-sm border border-line">
-              {loading ? 'Carregando…' : 'Nenhuma escola nesta área/filtro — afaste o zoom.'}
-            </span>
-          </div>
+        {vista === 'escolas' ? (
+          <>
+            <div className="absolute z-[500] top-4 left-4 rounded-xl bg-surface/90 backdrop-blur px-4 py-2.5 shadow-sm border border-line">
+              <p className="text-xs font-semibold text-ink-soft mb-1.5">Legenda — IDEB</p>
+              <div className="flex items-center gap-3 text-xs text-ink-soft">
+                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-mint-500" /> Bom</span>
+                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sun-500" /> Atenção</span>
+                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-peach-500" /> Crítico</span>
+              </div>
+            </div>
+            <SchoolMap
+              escolas={data?.itens ?? []}
+              onViewport={(b) => setBbox(`${b.oeste},${b.sul},${b.leste},${b.norte}`)}
+            />
+            {data && data.itens.length === 0 && (
+              <div className="absolute z-[500] inset-x-0 top-1/2 -translate-y-1/2 text-center pointer-events-none">
+                <span className="inline-block rounded-xl bg-surface/90 backdrop-blur px-4 py-2 text-sm text-ink-soft shadow-sm border border-line">
+                  {loading ? 'Carregando…' : 'Nenhuma escola nesta área/filtro — afaste o zoom.'}
+                </span>
+              </div>
+            )}
+          </>
+        ) : malha.data && estadosAgg.data ? (
+          <ChoroplethMap key={etapa} malha={malha.data} dados={estadosAgg.data} className="h-full w-full" />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center text-sm text-ink-faint">Carregando mapa…</div>
         )}
       </Card>
     </div>

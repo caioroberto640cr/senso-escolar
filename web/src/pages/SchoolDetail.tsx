@@ -16,6 +16,7 @@ import L from 'leaflet';
 import { Card, SectionTitle } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { MetricCard } from '../components/ui/MetricCard';
+import { DESCRICOES } from '../components/ui/InfoTip';
 import { Loading, ErrorState } from '../components/ui/State';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
@@ -135,13 +136,14 @@ export default function SchoolDetail() {
         <>
           {/* Métricas reais */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <MetricCard label={`IDEB · ${etapaLabel(aba)}`} value={ind.ideb.toFixed(1)} icon="🎓" tone="brand" />
+            <MetricCard label={`IDEB · ${etapaLabel(aba)}`} value={ind.ideb.toFixed(1)} icon="🎓" tone="brand" info={DESCRICOES.ideb} />
             <MetricCard
               label="Aprovação"
               value={ind.taxa_aprovacao ?? '—'}
               unit={ind.taxa_aprovacao != null ? '%' : ''}
               icon="✅"
               tone="mint"
+              info={DESCRICOES.aprovacao}
             />
             <MetricCard
               label="Abandono (evasão)"
@@ -149,14 +151,16 @@ export default function SchoolDetail() {
               unit={ind.abandono != null ? '%' : ''}
               icon="📉"
               tone="peach"
+              info={DESCRICOES.abandono}
             />
-            <MetricCard label="Nota SAEB" value={ind.nota_saeb ?? '—'} icon="📖" tone="sky" />
+            <MetricCard label="Nota SAEB" value={ind.nota_saeb ?? '—'} icon="📖" tone="sky" info={DESCRICOES.saeb} />
             <MetricCard
               label="Distorção idade-série"
               value={ind.distorcao ?? '—'}
               unit={ind.distorcao != null ? '%' : ''}
               icon="⏳"
               tone="peach"
+              info={DESCRICOES.distorcao}
             />
           </div>
 
