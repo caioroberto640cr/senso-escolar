@@ -12,6 +12,7 @@ import { Carregando } from './src/ui';
 import LoginScreen from './src/screens/Login';
 import CadastroScreen from './src/screens/Cadastro';
 import InicioScreen from './src/screens/Inicio';
+import MapaScreen from './src/screens/Mapa';
 import EscolasScreen from './src/screens/Escolas';
 import DetalheEscolaScreen from './src/screens/DetalheEscola';
 import EstadosScreen from './src/screens/Estados';
@@ -21,7 +22,7 @@ import AssistenteScreen from './src/screens/Assistente';
 import PerfilScreen from './src/screens/Perfil';
 
 const TELAS: Record<Tela, React.ComponentType<any>> = {
-  inicio: InicioScreen, escolas: EscolasScreen, estados: EstadosScreen,
+  inicio: InicioScreen, mapa: MapaScreen, escolas: EscolasScreen, estados: EstadosScreen,
   assistente: AssistenteScreen, perfil: PerfilScreen,
   DetalheEscola: DetalheEscolaScreen, Alertas: AlertasScreen, Comparativo: ComparativoScreen,
 };

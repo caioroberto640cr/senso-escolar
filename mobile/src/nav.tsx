@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 export type Tela =
-  | 'inicio' | 'escolas' | 'estados' | 'assistente' | 'perfil'
+  | 'inicio' | 'mapa' | 'escolas' | 'estados' | 'assistente' | 'perfil'
   | 'DetalheEscola' | 'Alertas' | 'Comparativo';
 
 interface Empilhada { tela: Tela; params?: any }
@@ -20,14 +20,16 @@ const Ctx = createContext<NavCtx | null>(null);
 
 export const ABAS: { key: Tela; label: string; icone: string }[] = [
   { key: 'inicio', label: 'Início', icone: 'home-outline' },
+  { key: 'mapa', label: 'Mapa', icone: 'map-outline' },
   { key: 'escolas', label: 'Escolas', icone: 'business-outline' },
   { key: 'estados', label: 'Estados', icone: 'stats-chart-outline' },
-  { key: 'assistente', label: 'Assistente', icone: 'chatbubbles-outline' },
+  { key: 'assistente', label: 'IA', icone: 'chatbubbles-outline' },
   { key: 'perfil', label: 'Perfil', icone: 'person-outline' },
 ];
 
 export const TITULOS: Record<Tela, string> = {
-  inicio: 'Início', escolas: 'Escolas', estados: 'Estados', assistente: 'Assistente', perfil: 'Perfil',
+  inicio: 'Início', mapa: 'Mapa das escolas', escolas: 'Escolas', estados: 'Estados',
+  assistente: 'Assistente', perfil: 'Perfil',
   DetalheEscola: 'Escola', Alertas: 'Alertas', Comparativo: 'Comparar escolas',
 };
 

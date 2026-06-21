@@ -1,7 +1,7 @@
 // Componentes de UI reutilizáveis do app (Image, Text, View, Button, TextInput).
 import React from 'react';
 import {
-  View, Text, TextInput, Pressable, Image, ActivityIndicator, StyleSheet,
+  View, Text, TextInput, Pressable, Image, ActivityIndicator, Modal, ScrollView, StyleSheet,
   type TextInputProps, type ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -122,6 +122,44 @@ export function Segmentos<T extends string>({
         );
       })}
     </View>
+  );
+}
+
+/** Seletor em dropdown (Modal) — para listas longas como UF. */
+export function SelectModal({
+  rotulo, valor, opcoes, onChange,
+}: { rotulo: string; valor: string; opcoes: { v: string; label: string }[]; onChange: (v: string) => void }) {
+  const [aberto, setAberto] = React.useState(false);
+  const sel = opcoes.find((o) => o.v === valor);
+  return (
+    <>
+      <Pressable
+        onPress={() => setAberto(true)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: cores.surface, borderWidth: 1, borderColor: cores.line, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 }}
+      >
+        <Text style={{ fontSize: 13, color: cores.ink, fontWeight: '600' }}>{rotulo}: {sel?.label ?? valor}</Text>
+        <Ionicons name="chevron-down" size={14} color={cores.inkFaint} />
+      </Pressable>
+      <Modal visible={aberto} transparent animationType="fade" onRequestClose={() => setAberto(false)}>
+        <Pressable onPress={() => setAberto(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'center', padding: 28 }}>
+          <View style={{ backgroundColor: cores.surface, borderRadius: 16, maxHeight: '70%', overflow: 'hidden' }}>
+            <Text style={{ fontWeight: '700', fontSize: 15, color: cores.ink, padding: 14 }}>{rotulo}</Text>
+            <ScrollView>
+              {opcoes.map((o) => {
+                const ativo = o.v === valor;
+                return (
+                  <Pressable key={o.v} onPress={() => { onChange(o.v); setAberto(false); }}
+                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: ativo ? cores.brand50 : 'transparent' }}>
+                    <Text style={{ color: ativo ? cores.brandDark : cores.ink, fontWeight: ativo ? '700' : '400' }}>{o.label}</Text>
+                    {ativo && <Ionicons name="checkmark" size={18} color={cores.brand} />}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 

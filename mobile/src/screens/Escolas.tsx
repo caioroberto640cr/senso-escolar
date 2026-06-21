@@ -1,39 +1,71 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { useNav } from '../nav';
 import { api, type EscolaLista } from '../api';
 import { useEtapa } from '../etapa';
-import { cores, dependenciaLabel, etapaLabel, toneIdeb } from '../theme';
-import { Campo, Etiqueta, Aviso } from '../ui';
+import { cores, dependenciaLabel, etapaLabel, toneIdeb, UFS } from '../theme';
+import { Campo, Etiqueta, Aviso, SelectModal } from '../ui';
+
+const DEPS = [
+  { v: 'todas', label: 'Todas' }, { v: 'federal', label: 'Federal' }, { v: 'estadual', label: 'Estadual' },
+  { v: 'municipal', label: 'Municipal' }, { v: 'privada', label: 'Privada' },
+];
+const DESEMPENHOS = [
+  { v: 'todos', label: 'Todos' }, { v: 'bom', label: 'Bom' }, { v: 'atencao', label: 'Atenção' }, { v: 'critico', label: 'Crítico' },
+];
+const UF_OPCOES = [{ v: 'todas', label: 'Todos' }, ...UFS.map((u) => ({ v: u, label: u }))];
+
+function Chips({ opcoes, valor, onChange }: { opcoes: { v: string; label: string }[]; valor: string; onChange: (v: string) => void }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+      {opcoes.map((o) => {
+        const ativo = o.v === valor;
+        return (
+          <Pressable key={o.v} onPress={() => onChange(o.v)}
+            style={{ backgroundColor: ativo ? cores.brand : cores.brand50, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}>
+            <Text style={{ color: ativo ? '#fff' : cores.inkSoft, fontSize: 12, fontWeight: '600' }}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
 
 export default function Escolas() {
   const { navegar } = useNav();
   const { etapa } = useEtapa();
   const [busca, setBusca] = useState('');
+  const [uf, setUf] = useState('todas');
+  const [dep, setDep] = useState('todas');
+  const [desempenho, setDesempenho] = useState('todos');
   const [itens, setItens] = useState<EscolaLista[]>([]);
   const [total, setTotal] = useState(0);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  // busca com debounce; recarrega ao trocar etapa
+  // busca com debounce; recarrega ao trocar etapa/filtros
   useEffect(() => {
     let vivo = true;
     setCarregando(true);
     setErro(null);
     const t = setTimeout(() => {
-      api.escolas({ etapa, q: busca.trim() || undefined, limit: 40 })
+      api.escolas({ etapa, q: busca.trim() || undefined, uf, dependencia: dep, desempenho, limit: 40 })
         .then((r) => { if (vivo) { setItens(r.itens); setTotal(r.total); } })
         .catch((e) => vivo && setErro(e?.response?.data?.erro || 'Falha ao buscar'))
         .finally(() => vivo && setCarregando(false));
     }, busca ? 350 : 0);
     return () => { vivo = false; clearTimeout(t); };
-  }, [busca, etapa]);
+  }, [busca, etapa, uf, dep, desempenho]);
 
   return (
     <View style={{ flex: 1, backgroundColor: cores.canvas }}>
       <View style={{ padding: 16, gap: 10 }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: cores.ink }}>Escolas</Text>
         <Campo icone="search-outline" placeholder="Buscar por nome ou município…" value={busca} onChangeText={setBusca} autoCapitalize="none" />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <SelectModal rotulo="UF" valor={uf} opcoes={UF_OPCOES} onChange={setUf} />
+          <View style={{ flex: 1 }}><Chips opcoes={DEPS} valor={dep} onChange={setDep} /></View>
+        </View>
+        <Chips opcoes={DESEMPENHOS} valor={desempenho} onChange={setDesempenho} />
         <Text style={{ color: cores.inkFaint, fontSize: 12 }}>
           {carregando ? 'Buscando…' : `${total.toLocaleString('pt-BR')} escolas · ${etapaLabel(etapa)}`}
         </Text>

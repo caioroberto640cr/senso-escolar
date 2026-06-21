@@ -40,7 +40,8 @@ export interface IndicadoresNacionais {
 export interface AggRegiao { chave: string; ideb: number; escolas: number }
 export interface EscolaMapa {
   id_escola: string; nome: string; municipio: string; estado: string;
-  dependencia: string; ideb: number; taxa_aprovacao: number | null;
+  dependencia: string; latitude: number; longitude: number;
+  ideb: number; taxa_aprovacao: number | null;
   nota_saeb: number | null; abandono?: number | null;
 }
 export interface EscolaLista extends EscolaMapa { regiao: string; reprovacao?: number | null; distorcao?: number | null }
@@ -73,13 +74,24 @@ export const api = {
   indicadoresEstados: (etapa: EtapaKey) =>
     http.get<AggRegiao[]>(`/indicadores/estados?etapa=${etapa}`).then((r) => r.data),
 
-  escolas: (p: { etapa: EtapaKey; q?: string; uf?: string; limit?: number }) => {
+  escolas: (p: { etapa: EtapaKey; q?: string; uf?: string; dependencia?: string; desempenho?: string; limit?: number }) => {
     const qs = new URLSearchParams();
     qs.set('etapa', p.etapa);
     if (p.q) qs.set('q', p.q);
     if (p.uf && p.uf !== 'todas') qs.set('uf', p.uf);
+    if (p.dependencia && p.dependencia !== 'todas') qs.set('dependencia', p.dependencia);
+    if (p.desempenho && p.desempenho !== 'todos') qs.set('desempenho', p.desempenho);
     qs.set('limit', String(p.limit ?? 30));
     return http.get<{ total: number; itens: EscolaLista[] }>(`/escolas?${qs}`).then((r) => r.data);
+  },
+  mapa: (p: { etapa: EtapaKey; uf?: string; dependencia?: string; desempenho?: string; limit?: number }) => {
+    const qs = new URLSearchParams();
+    qs.set('etapa', p.etapa);
+    if (p.uf && p.uf !== 'todas') qs.set('uf', p.uf);
+    if (p.dependencia && p.dependencia !== 'todas') qs.set('dependencia', p.dependencia);
+    if (p.desempenho && p.desempenho !== 'todos') qs.set('desempenho', p.desempenho);
+    qs.set('limit', String(p.limit ?? 350));
+    return http.get<{ total: number; exibidas: number; amostrado: boolean; itens: EscolaMapa[] }>(`/escolas/mapa?${qs}`).then((r) => r.data);
   },
   escola: (id: string) => http.get<EscolaCompleta>(`/escolas/${id}`).then((r) => r.data),
   alertas: () => http.get<Alerta[]>('/alertas').then((r) => r.data),

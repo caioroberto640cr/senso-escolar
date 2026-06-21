@@ -39,3 +39,11 @@ export function toneIdeb(v: number | null | undefined) {
 
 export const dependenciaLabel = (d: string) =>
   ({ federal: 'Federal', estadual: 'Estadual', municipal: 'Municipal', privada: 'Privada' } as Record<string, string>)[d] ?? d;
+
+export const UFS = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
+  'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+];
+
+// bbox do mapa do Brasil (precisa ser IGUAL ao usado para gerar brand/brasil-mapa.png)
+export const BBOX_BR = { oeste: -74, leste: -34, sul: -34, norte: 6 };
