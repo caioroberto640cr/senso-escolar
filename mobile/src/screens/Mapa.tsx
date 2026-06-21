@@ -28,6 +28,16 @@ const HTML = `<!DOCTYPE html><html><head>
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
   map.setMaxBounds([[-34, -74], [6, -34]]);
   map.setMinZoom(4);
+  var _t;
+  function emitirBbox(){
+    clearTimeout(_t);
+    _t = setTimeout(function(){
+      var b = map.getBounds();
+      post({ bbox: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()] });
+    }, 350);
+  }
+  map.on('moveend', emitirBbox);
+  map.on('zoomend', emitirBbox);
   var camadaMask = L.layerGroup().addTo(map);
   var cluster = null;
   function cor(v){ if (v >= 6) return '#17a24a'; if (v >= 4.5) return '#f4a11e'; return '#e2463a'; }
@@ -58,16 +68,19 @@ const HTML = `<!DOCTYPE html><html><head>
     } catch (err) {}
   };
   post({ ready: true });
+  setTimeout(emitirBbox, 300);
 </script></body></html>`;
 
 export default function Mapa() {
   const { navegar } = useNav();
   const { etapa, setEtapa } = useEtapa();
   const [uf, setUf] = useState('todas');
+  const [bbox, setBbox] = useState<string | undefined>(undefined);
   const webRef = useRef<WebView>(null);
   const [pronto, setPronto] = useState(false);
 
-  const { data, carregando } = useDados(() => api.mapa({ etapa, uf, limit: 3000 }), [etapa, uf]);
+  // carrega por área visível (bbox) → ao dar zoom numa cidade, traz todas as escolas dali
+  const { data, carregando } = useDados(() => api.mapa({ etapa, uf, bbox, limit: 3000 }), [etapa, uf, bbox]);
   const pais = useDados(() => api.malhaPais(), []);
   const itens = data?.itens ?? [];
 
@@ -104,6 +117,7 @@ export default function Mapa() {
           try {
             const msg = JSON.parse(ev.nativeEvent.data);
             if (msg.ready) setPronto(true);
+            else if (msg.bbox) setBbox(msg.bbox.join(','));
             else if (msg.id) navegar('DetalheEscola', { id: String(msg.id) });
           } catch {}
         }}

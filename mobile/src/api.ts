@@ -84,14 +84,15 @@ export const api = {
     qs.set('limit', String(p.limit ?? 30));
     return http.get<{ total: number; itens: EscolaLista[] }>(`/escolas?${qs}`).then((r) => r.data);
   },
-  mapa: (p: { etapa: EtapaKey; uf?: string; dependencia?: string; desempenho?: string; limit?: number }) => {
+  mapa: (p: { etapa: EtapaKey; uf?: string; dependencia?: string; desempenho?: string; bbox?: string; limit?: number }) => {
     const qs = new URLSearchParams();
     qs.set('etapa', p.etapa);
     if (p.uf && p.uf !== 'todas') qs.set('uf', p.uf);
     if (p.dependencia && p.dependencia !== 'todas') qs.set('dependencia', p.dependencia);
     if (p.desempenho && p.desempenho !== 'todos') qs.set('desempenho', p.desempenho);
+    if (p.bbox) qs.set('bbox', p.bbox);
     qs.set('limit', String(p.limit ?? 350));
-    return http.get<{ total: number; exibidas: number; amostrado: boolean; itens: EscolaMapa[] }>(`/escolas/mapa?${qs}`).then((r) => r.data);
+    return http.get<{ total: number; na_area?: number; exibidas: number; amostrado: boolean; itens: EscolaMapa[] }>(`/escolas/mapa?${qs}`).then((r) => r.data);
   },
   escola: (id: string) => http.get<EscolaCompleta>(`/escolas/${id}`).then((r) => r.data),
   malhaPais: () => http.get<any>('/geografia/malha-pais').then((r) => r.data),
