@@ -7,13 +7,16 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { cores } from './theme';
 
+// Logo servida por URL (evita binários no projeto — compatível com Expo Snack).
+const LOGO_URL = 'https://raw.githubusercontent.com/caioroberto640cr/senso-escolar/main/brand/logo.png';
+
 /** Marca do EduInsight: logo (Image) + wordmark em duas cores. */
 export function Logo({ tamanho = 40, comTexto = true }: { tamanho?: number; comTexto?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <Image
-        source={require('../assets/logo.png')}
-        style={{ width: tamanho, height: tamanho, borderRadius: tamanho * 0.28 }}
+        source={{ uri: LOGO_URL }}
+        style={{ width: tamanho, height: tamanho, borderRadius: tamanho * 0.28, backgroundColor: cores.brand }}
         resizeMode="contain"
         accessibilityLabel="EduInsight"
       />
