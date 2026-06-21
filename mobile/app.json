@@ -21,16 +21,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/splash-icon.png",
-          "backgroundColor": "#17a24a",
-          "imageWidth": 180
-        }
-      ]
-    ]
+    }
   }
 }
