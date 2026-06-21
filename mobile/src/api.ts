@@ -94,6 +94,7 @@ export const api = {
     return http.get<{ total: number; exibidas: number; amostrado: boolean; itens: EscolaMapa[] }>(`/escolas/mapa?${qs}`).then((r) => r.data);
   },
   escola: (id: string) => http.get<EscolaCompleta>(`/escolas/${id}`).then((r) => r.data),
+  malhaPais: () => http.get<any>('/geografia/malha-pais').then((r) => r.data),
   alertas: () => http.get<Alerta[]>('/alertas').then((r) => r.data),
 
   assistente: (mensagens: MsgChat[], etapa: EtapaKey) =>

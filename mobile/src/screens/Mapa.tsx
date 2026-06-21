@@ -1,125 +1,112 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, Image, Pressable, Animated, PanResponder } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { useNav } from '../nav';
 import { api } from '../api';
 import { useEtapa } from '../etapa';
 import { useDados } from '../useDados';
-import { cores, etapaLabel, toneIdeb, UFS, BBOX_BR, ETAPAS } from '../theme';
-import { Carregando, Aviso, SelectModal, Segmentos } from '../ui';
+import { cores, UFS, ETAPAS } from '../theme';
+import { SelectModal, Segmentos } from '../ui';
 
-const MAPA_URL = 'https://raw.githubusercontent.com/caioroberto640cr/senso-escolar/main/brand/brasil-mapa.png';
 const UF_OPCOES = [{ v: 'todas', label: 'Todos' }, ...UFS.map((u) => ({ v: u, label: u }))];
 
-function pos(lat: number, lng: number) {
-  return {
-    x: ((lng - BBOX_BR.oeste) / (BBOX_BR.leste - BBOX_BR.oeste)) * 100,
-    y: ((BBOX_BR.norte - lat) / (BBOX_BR.norte - BBOX_BR.sul)) * 100,
+// HTML com Leaflet (mesma base do web): tiles CARTO + máscara do Brasil + marcadores por IDEB.
+const HTML = `<!DOCTYPE html><html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>html,body,#map{height:100%;margin:0;background:#eef3f6}</style>
+</head><body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var RN = window.ReactNativeWebView;
+  var post = function(o){ RN && RN.postMessage(JSON.stringify(o)); };
+  var map = L.map('map', { zoomControl: true, attributionControl: false }).setView([-14.2, -51.9], 4);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
+  map.setMaxBounds([[-34, -74], [6, -34]]);
+  map.setMinZoom(4);
+  var camadaPts = L.layerGroup().addTo(map);
+  var camadaMask = L.layerGroup().addTo(map);
+  function cor(v){ if (v >= 6) return '#17a24a'; if (v >= 4.5) return '#f4a11e'; return '#e2463a'; }
+  window.renderEscolas = function(itens){
+    camadaPts.clearLayers();
+    (itens || []).forEach(function(e){
+      if (e.latitude == null || e.longitude == null) return;
+      var m = L.circleMarker([e.latitude, e.longitude], { radius: 5, color: '#fff', weight: 1, fillColor: cor(e.ideb), fillOpacity: 0.95 });
+      m.on('click', function(){ post({ id: e.id_escola }); });
+      m.addTo(camadaPts);
+    });
   };
-}
-const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
-const distancia = (t: any[]) => Math.hypot(t[0].pageX - t[1].pageX, t[0].pageY - t[1].pageY);
-const centro = (t: any[]) =>
-  t.length >= 2
-    ? { x: (t[0].pageX + t[1].pageX) / 2, y: (t[0].pageY + t[1].pageY) / 2 }
-    : { x: t[0].pageX, y: t[0].pageY };
+  window.renderMascara = function(geo){
+    try {
+      camadaMask.clearLayers();
+      var mundo = [[-85,-180],[-85,180],[85,180],[85,-180]];
+      var buracos = [];
+      var feats = geo.type === 'FeatureCollection' ? geo.features : [geo];
+      feats.forEach(function(f){
+        var g = f.geometry || f;
+        var polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
+        polys.forEach(function(p){ buracos.push(p[0].map(function(c){ return [c[1], c[0]]; })); });
+      });
+      L.polygon([mundo].concat(buracos), { stroke: false, fillColor: '#eef3f6', fillOpacity: 1, interactive: false }).addTo(camadaMask);
+      L.geoJSON(geo, { style: { color: '#17a24a', weight: 1.2, fill: false } }).addTo(camadaMask);
+    } catch (err) {}
+  };
+  post({ ready: true });
+</script></body></html>`;
 
 export default function Mapa() {
   const { navegar } = useNav();
   const { etapa, setEtapa } = useEtapa();
   const [uf, setUf] = useState('todas');
-  const { data, carregando, erro } = useDados(() => api.mapa({ etapa, uf, limit: 350 }), [etapa, uf]);
-  const itens = (data?.itens ?? []).filter((e) => e.latitude != null && e.longitude != null);
+  const webRef = useRef<WebView>(null);
+  const [pronto, setPronto] = useState(false);
 
-  // transform (zoom + pan) sem libs nativas
-  const aScale = useRef(new Animated.Value(1)).current;
-  const aTx = useRef(new Animated.Value(0)).current;
-  const aTy = useRef(new Animated.Value(0)).current;
-  const cur = useRef({ scale: 1, x: 0, y: 0 }).current;
-  const snap = useRef({ count: 0, dist: 0, scale: 1, x: 0, y: 0, cx: 0, cy: 0 }).current;
+  const { data, carregando } = useDados(() => api.mapa({ etapa, uf, limit: 500 }), [etapa, uf]);
+  const pais = useDados(() => api.malhaPais(), []);
+  const itens = data?.itens ?? [];
 
-  const aplicarZoom = (fator: number) => {
-    cur.scale = clamp(cur.scale * fator, 1, 6);
-    if (cur.scale === 1) { cur.x = 0; cur.y = 0; aTx.setValue(0); aTy.setValue(0); }
-    Animated.timing(aScale, { toValue: cur.scale, duration: 140, useNativeDriver: true }).start();
-  };
-  const resetar = () => {
-    cur.scale = 1; cur.x = 0; cur.y = 0;
-    Animated.parallel([
-      Animated.timing(aScale, { toValue: 1, duration: 160, useNativeDriver: true }),
-      Animated.timing(aTx, { toValue: 0, duration: 160, useNativeDriver: true }),
-      Animated.timing(aTy, { toValue: 0, duration: 160, useNativeDriver: true }),
-    ]).start();
-  };
+  // injeta os pontos sempre que os dados ou o WebView ficarem prontos
+  useEffect(() => {
+    if (pronto && webRef.current) {
+      webRef.current.injectJavaScript(`window.renderEscolas && renderEscolas(${JSON.stringify(itens)}); true;`);
+    }
+  }, [pronto, itens]);
 
-  const pan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (e, g) =>
-        e.nativeEvent.touches.length === 2 || Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
-      onPanResponderGrant: () => { snap.count = 0; },
-      onPanResponderMove: (e) => {
-        const t = e.nativeEvent.touches;
-        if (t.length !== snap.count) {
-          snap.count = t.length;
-          snap.scale = cur.scale; snap.x = cur.x; snap.y = cur.y;
-          snap.dist = t.length >= 2 ? distancia(t) : 0;
-          const c = centro(t); snap.cx = c.x; snap.cy = c.y;
-          return;
-        }
-        const c = centro(t);
-        if (t.length >= 2 && snap.dist > 0) {
-          cur.scale = clamp(snap.scale * (distancia(t) / snap.dist), 1, 6);
-          aScale.setValue(cur.scale);
-        }
-        cur.x = snap.x + (c.x - snap.cx);
-        cur.y = snap.y + (c.y - snap.cy);
-        aTx.setValue(cur.x); aTy.setValue(cur.y);
-      },
-    })
-  ).current;
+  // injeta a máscara do Brasil quando disponível
+  useEffect(() => {
+    if (pronto && webRef.current && pais.data) {
+      webRef.current.injectJavaScript(`window.renderMascara && renderMascara(${JSON.stringify(pais.data)}); true;`);
+    }
+  }, [pronto, pais.data]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: cores.canvas, padding: 16, gap: 10 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <Text style={{ fontSize: 12, color: cores.inkFaint, flex: 1 }}>
-          {carregando ? 'carregando…' : `${itens.length} escolas no mapa${data?.amostrado ? ' (amostra)' : ''}`}
-        </Text>
-        <SelectModal rotulo="UF" valor={uf} opcoes={UF_OPCOES} onChange={setUf} />
-      </View>
-
-      <Segmentos opcoes={ETAPAS.map((e) => ({ key: e.key, label: e.curto }))} valor={etapa} onPress={setEtapa} />
-
-      <View style={{ width: '100%', aspectRatio: 1, backgroundColor: cores.surface, borderRadius: 16, borderWidth: 1, borderColor: cores.line, overflow: 'hidden' }} {...pan.panHandlers}>
-        <Animated.View style={{ flex: 1, transform: [{ translateX: aTx }, { translateY: aTy }, { scale: aScale }] }}>
-          <Image source={{ uri: MAPA_URL }} style={{ position: 'absolute', width: '100%', height: '100%' }} resizeMode="contain" />
-          {!carregando && itens.map((e) => {
-            const p = pos(e.latitude, e.longitude);
-            if (p.x < 0 || p.x > 100 || p.y < 0 || p.y > 100) return null;
-            return (
-              <Pressable
-                key={e.id_escola}
-                onPress={() => navegar('DetalheEscola', { id: e.id_escola, nome: e.nome })}
-                hitSlop={6}
-                style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%`, width: 9, height: 9, borderRadius: 5, marginLeft: -4.5, marginTop: -4.5, backgroundColor: toneIdeb(e.ideb).cor, borderWidth: 1, borderColor: '#fff' }}
-              />
-            );
-          })}
-        </Animated.View>
-
-        {carregando && <View style={{ position: 'absolute', inset: 0, justifyContent: 'center' }}><Carregando /></View>}
-
-        {/* Controles de zoom */}
-        <View style={{ position: 'absolute', right: 10, bottom: 10, gap: 8 }}>
-          <BotaoZoom icone="add" onPress={() => aplicarZoom(1.6)} />
-          <BotaoZoom icone="remove" onPress={() => aplicarZoom(1 / 1.6)} />
-          <BotaoZoom icone="scan-outline" onPress={resetar} />
+    <View style={{ flex: 1, backgroundColor: cores.canvas }}>
+      <View style={{ padding: 12, gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <Text style={{ fontSize: 12, color: cores.inkFaint, flex: 1 }}>
+            {carregando ? 'carregando escolas…' : `${itens.length} escolas no mapa${data?.amostrado ? ' (amostra)' : ''}`}
+          </Text>
+          <SelectModal rotulo="UF" valor={uf} opcoes={UF_OPCOES} onChange={setUf} />
         </View>
+        <Segmentos opcoes={ETAPAS.map((e) => ({ key: e.key, label: e.curto }))} valor={etapa} onPress={setEtapa} />
       </View>
 
-      {erro && <Aviso texto={erro} />}
+      <WebView
+        ref={webRef}
+        originWhitelist={['*']}
+        source={{ html: HTML }}
+        style={{ flex: 1, backgroundColor: '#eef3f6' }}
+        onMessage={(ev) => {
+          try {
+            const msg = JSON.parse(ev.nativeEvent.data);
+            if (msg.ready) setPronto(true);
+            else if (msg.id) navegar('DetalheEscola', { id: String(msg.id) });
+          } catch {}
+        }}
+      />
 
-      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, paddingVertical: 8, backgroundColor: cores.surface, borderTopWidth: 1, borderTopColor: cores.line }}>
         {[['Bom (≥6)', cores.brand], ['Atenção', cores.gold], ['Crítico (<4,5)', cores.coral]].map(([l, c]) => (
           <View key={l as string} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c as string }} />
@@ -127,18 +114,6 @@ export default function Mapa() {
           </View>
         ))}
       </View>
-
-      <Text style={{ textAlign: 'center', color: cores.inkFaint, fontSize: 11 }}>
-        Arraste para mover · pinça ou +/− para zoom · toque num ponto p/ abrir a escola.
-      </Text>
     </View>
-  );
-}
-
-function BotaoZoom({ icone, onPress }: { icone: keyof typeof Ionicons.glyphMap; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: cores.surface, borderWidth: 1, borderColor: cores.line, alignItems: 'center', justifyContent: 'center' }}>
-      <Ionicons name={icone} size={20} color={cores.brandDark} />
-    </Pressable>
   );
 }
