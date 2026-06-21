@@ -55,6 +55,12 @@ export function limparSessao(res: Response) {
 export function verificarCsrf(req: Request, res: Response, next: NextFunction) {
   const m = req.method.toUpperCase();
   if (m === 'GET' || m === 'HEAD' || m === 'OPTIONS') return next();
+  // Clientes via Bearer (app mobile/API) não são vulneráveis a CSRF — isenta.
+  const auth = req.headers.authorization;
+  if (auth && auth.startsWith('Bearer ')) return next();
+  // Endpoints de sessão (login/cadastro/logout) não exigem CSRF — isenta.
+  // (o RN reenvia o cookie automaticamente, mas o login não precisa de CSRF)
+  if ((req.originalUrl || '').includes('/auth/')) return next();
   const cookies = lerCookies(req);
   if (!cookies[COOKIE_TOKEN]) return next(); // sem sessão por cookie → nada a proteger aqui
   const header = req.headers['x-csrf-token'];
