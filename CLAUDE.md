@@ -1,7 +1,8 @@
 # EduInsight — contexto para o Claude
 
 BI dos indicadores de aprendizagem do ensino básico brasileiro (IDEB, aprovação, SAEB),
-com **dados reais** do INEP/IBGE. Monorepo: `api/` (Node/Express) + `web/` (React/Vite).
+com **dados reais** do INEP/IBGE. Monorepo: `api/` (Node/Express) + `web/` (React/Vite)
++ `mobile/` (React Native/Expo — protótipo que consome a mesma API; ver `mobile/README.md`).
 App publicada no Render (repo `caioroberto640cr/senso-escolar`).
 
 ## Stack

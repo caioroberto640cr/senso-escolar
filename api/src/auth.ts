@@ -85,8 +85,10 @@ export async function registrar(req: Request, res: Response) {
       [String(nome).trim(), emailNorm, hash, perfilFinal]
     );
     const user = rows[0];
-    const csrf = definirSessao(req, res, assinar(user));
-    res.status(201).json({ usuario: semHash(user), csrf });
+    const token = assinar(user);
+    const csrf = definirSessao(req, res, token);
+    // token também no corpo para clientes sem cookie (app mobile usa Bearer)
+    res.status(201).json({ usuario: semHash(user), csrf, token });
   } catch (e: any) {
     console.error('registrar:', e.message);
     res.status(500).json({ erro: 'Falha ao cadastrar.' });
@@ -104,8 +106,10 @@ export async function entrar(req: Request, res: Response) {
     if (!user || !(await bcrypt.compare(String(senha), user.senha_hash!)))
       return res.status(401).json({ erro: 'E-mail ou senha incorretos.' });
     if (!user.ativo) return res.status(403).json({ erro: 'Conta desativada. Procure um administrador.' });
-    const csrf = definirSessao(req, res, assinar(user));
-    res.json({ usuario: semHash(user), csrf });
+    const token = assinar(user);
+    const csrf = definirSessao(req, res, token);
+    // token também no corpo para clientes sem cookie (app mobile usa Bearer)
+    res.json({ usuario: semHash(user), csrf, token });
   } catch (e: any) {
     console.error('entrar:', e.message);
     res.status(500).json({ erro: 'Falha ao entrar.' });

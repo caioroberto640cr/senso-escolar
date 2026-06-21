@@ -14,6 +14,7 @@ import {
   listarUsuarios, atualizarUsuario, removerUsuario,
 } from './auth.ts';
 import { verificarCsrf } from './cookies.ts';
+import { assistente } from './assistente.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -136,6 +137,9 @@ app.get('/api/indicadores/estados', (req, res) => res.json(agregados[resolverEta
 
 // ---------- Alertas ----------
 app.get('/api/alertas', (_req, res) => res.json(alertas));
+
+// ---------- Assistente de IA (chatbot, usado pelo app mobile) ----------
+app.post('/api/assistente', assistente);
 
 // ---------- Decomposição (árvore: nº de escolas / matrículas por dimensões) ----------
 const DEP_LABEL: Record<string, string> = {
