@@ -5,7 +5,7 @@ import { SchoolMap } from '../components/SchoolMap';
 import { ChoroplethMap } from '../components/ChoroplethMap';
 import { api, useFetch } from '../lib/api';
 import { useEtapa } from '../lib/etapa';
-import { etapaLabel } from '../types';
+import { etapaLabel, ETAPAS } from '../types';
 import { UFS, REGIOES } from '../data/mock';
 import { cx } from '../lib/utils';
 
@@ -44,7 +44,7 @@ export default function MapPage() {
   const [bbox, setBbox] = useState<string | undefined>(undefined);
   const [vista, setVista] = useState<'escolas' | 'estados'>('escolas');
 
-  const { etapa } = useEtapa();
+  const { etapa, setEtapa } = useEtapa();
   const { data, loading } = useFetch(
     () => api.mapa({ etapa, uf, regiao, dependencia: dep, desempenho, localizacao, recorte, infra: infra.join(','), bbox }),
     [etapa, uf, regiao, dep, desempenho, localizacao, recorte, infra, bbox]
@@ -72,6 +72,23 @@ export default function MapPage() {
               )}
             >
               {lbl}
+            </button>
+          ))}
+        </div>
+
+        {/* Etapa de ensino (aplica aos dois modos) */}
+        <label className="block text-xs font-semibold text-ink-soft mb-1.5">Etapa de ensino</label>
+        <div className="flex rounded-xl bg-brand-50 p-1 mb-4">
+          {ETAPAS.map((e) => (
+            <button
+              key={e.key}
+              onClick={() => setEtapa(e.key)}
+              className={cx(
+                'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-colors',
+                etapa === e.key ? 'bg-brand-500 text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+              )}
+            >
+              {e.curto}
             </button>
           ))}
         </div>
