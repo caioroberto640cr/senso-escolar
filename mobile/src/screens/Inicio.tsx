@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNav } from '../nav';
 import { api } from '../api';
 import { useEtapa } from '../etapa';
 import { useDados } from '../useDados';
@@ -8,7 +8,7 @@ import { cores, ETAPAS, etapaLabel, toneIdeb } from '../theme';
 import { Cartao, Metrica, Carregando, Aviso, Botao, Segmentos, Etiqueta } from '../ui';
 
 export default function Inicio() {
-  const nav = useNavigation<any>();
+  const { navegar } = useNav();
   const { etapa, setEtapa } = useEtapa();
   const nac = useDados(() => api.indicadoresNacionais(etapa), [etapa]);
   const reg = useDados(() => api.indicadoresRegioes(etapa), [etapa]);
@@ -63,10 +63,10 @@ export default function Inicio() {
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <View style={{ flex: 1 }}>
-          <Botao titulo="Alertas" icone="notifications-outline" variante="suave" onPress={() => nav.navigate('Alertas')} />
+          <Botao titulo="Alertas" icone="notifications-outline" variante="suave" onPress={() => navegar('Alertas')} />
         </View>
         <View style={{ flex: 1 }}>
-          <Botao titulo="Comparar" icone="git-compare-outline" variante="suave" onPress={() => nav.navigate('Comparativo')} />
+          <Botao titulo="Comparar" icone="git-compare-outline" variante="suave" onPress={() => navegar('Comparativo')} />
         </View>
       </View>
 

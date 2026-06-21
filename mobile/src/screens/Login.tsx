@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth';
 import { cores } from '../theme';
 import { Logo, Campo, Botao, Cartao } from '../ui';
 
-export default function Login() {
-  const nav = useNavigation<any>();
+export default function Login({ irCadastro }: { irCadastro: () => void }) {
   const { entrar } = useAuth();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -51,7 +49,7 @@ export default function Login() {
           </View>
         </Cartao>
 
-        <Pressable onPress={() => nav.navigate('Cadastro')} style={{ marginTop: 18, alignItems: 'center' }}>
+        <Pressable onPress={irCadastro} style={{ marginTop: 18, alignItems: 'center' }}>
           <Text style={{ color: cores.inkSoft }}>
             Não tem conta? <Text style={{ color: cores.brandDark, fontWeight: '700' }}>Criar conta</Text>
           </Text>

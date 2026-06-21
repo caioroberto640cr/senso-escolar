@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNav } from '../nav';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
 import { useDados } from '../useDados';
@@ -17,8 +17,8 @@ const INFRA: { key: string; label: string; icone: keyof typeof Ionicons.glyphMap
 ];
 
 export default function DetalheEscola() {
-  const route = useRoute<any>();
-  const id = route.params?.id as string;
+  const nav = useNav();
+  const id = nav.atual.params?.id as string;
   const { data, carregando, erro } = useDados(() => api.escola(id), [id]);
   const [aba, setAba] = useState<EtapaKey | null>(null);
 

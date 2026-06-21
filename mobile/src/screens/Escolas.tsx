@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Pressable, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNav } from '../nav';
 import { api, type EscolaLista } from '../api';
 import { useEtapa } from '../etapa';
 import { cores, dependenciaLabel, etapaLabel, toneIdeb } from '../theme';
 import { Campo, Etiqueta, Aviso } from '../ui';
 
 export default function Escolas() {
-  const nav = useNavigation<any>();
+  const { navegar } = useNav();
   const { etapa } = useEtapa();
   const [busca, setBusca] = useState('');
   const [itens, setItens] = useState<EscolaLista[]>([]);
@@ -53,7 +53,7 @@ export default function Escolas() {
             const t = toneIdeb(item.ideb);
             return (
               <Pressable
-                onPress={() => nav.navigate('DetalheEscola', { id: item.id_escola, nome: item.nome })}
+                onPress={() => navegar('DetalheEscola', { id: item.id_escola, nome: item.nome })}
                 style={{ backgroundColor: cores.surface, borderRadius: 14, borderWidth: 1, borderColor: cores.line, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}
               >
                 <View style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: t.cor + '22', alignItems: 'center', justifyContent: 'center' }}>

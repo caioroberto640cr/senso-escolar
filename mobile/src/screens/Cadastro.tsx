@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../auth';
 import { cores } from '../theme';
 import { Logo, Campo, Botao, Cartao } from '../ui';
@@ -11,8 +10,7 @@ const PERFIS = [
   { v: 'gestor', label: 'Gestor' },
 ];
 
-export default function Cadastro() {
-  const nav = useNavigation<any>();
+export default function Cadastro({ irLogin }: { irLogin: () => void }) {
   const { cadastrar } = useAuth();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -75,7 +73,7 @@ export default function Cadastro() {
           </View>
         </Cartao>
 
-        <Pressable onPress={() => nav.navigate('Login')} style={{ marginTop: 18, alignItems: 'center' }}>
+        <Pressable onPress={irLogin} style={{ marginTop: 18, alignItems: 'center' }}>
           <Text style={{ color: cores.inkSoft }}>
             Já tem conta? <Text style={{ color: cores.brandDark, fontWeight: '700' }}>Entrar</Text>
           </Text>
