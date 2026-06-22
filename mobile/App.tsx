@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, Platform, StatusBar as RNStatusBar, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Pressable, Platform, StatusBar as RNStatusBar, SafeAreaView, Keyboard } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -65,13 +65,22 @@ function TabBar() {
 function Shell() {
   const { atual, pilha, voltar } = useNav();
   const Tela = TELAS[atual.tela];
+  const [teclado, setTeclado] = useState(false);
+
+  // esconde a barra de abas quando o teclado abre (libera espaço p/ o chat)
+  useEffect(() => {
+    const s = Keyboard.addListener('keyboardDidShow', () => setTeclado(true));
+    const h = Keyboard.addListener('keyboardDidHide', () => setTeclado(false));
+    return () => { s.remove(); h.remove(); };
+  }, []);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: cores.canvas }}>
       <Header titulo={TITULOS[atual.tela]} onBack={pilha.length ? voltar : undefined} />
       <View style={{ flex: 1 }}>
         <Tela />
       </View>
-      <TabBar />
+      {!teclado && <TabBar />}
     </SafeAreaView>
   );
 }

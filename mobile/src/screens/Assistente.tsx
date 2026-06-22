@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, FlatList, Pressable, KeyboardAvoidingView, Platform, TextInput, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, FlatList, Pressable, Platform, TextInput, ActivityIndicator, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { api, type MsgChat } from '../api';
 import { useEtapa } from '../etapa';
@@ -18,7 +18,20 @@ export default function Assistente() {
   ]);
   const [texto, setTexto] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [kbAltura, setKbAltura] = useState(0);
   const listaRef = useRef<FlatList>(null);
+
+  // levanta a barra de digitar acima do teclado (a barra de abas some via App.tsx)
+  useEffect(() => {
+    const showEv = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEv = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const s = Keyboard.addListener(showEv, (e) => {
+      setKbAltura(e.endCoordinates?.height ?? 0);
+      setTimeout(() => listaRef.current?.scrollToEnd({ animated: true }), 60);
+    });
+    const h = Keyboard.addListener(hideEv, () => setKbAltura(0));
+    return () => { s.remove(); h.remove(); };
+  }, []);
 
   async function enviar(msg?: string) {
     const conteudo = (msg ?? texto).trim();
@@ -39,7 +52,7 @@ export default function Assistente() {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: cores.canvas }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
+    <View style={{ flex: 1, backgroundColor: cores.canvas }}>
       <FlatList
         ref={listaRef}
         data={mensagens}
@@ -72,7 +85,7 @@ export default function Assistente() {
         }
       />
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: cores.line, backgroundColor: cores.surface }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, marginBottom: kbAltura, borderTopWidth: 1, borderTopColor: cores.line, backgroundColor: cores.surface }}>
         <TextInput
           value={texto}
           onChangeText={setTexto}
@@ -87,6 +100,6 @@ export default function Assistente() {
           <Ionicons name="send" size={18} color="#fff" />
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
