@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useNav } from '../nav';
@@ -82,7 +82,7 @@ export default function Mapa() {
   // carrega por área visível (bbox) → ao dar zoom numa cidade, traz todas as escolas dali
   const { data, carregando } = useDados(() => api.mapa({ etapa, uf, bbox, limit: 3000 }), [etapa, uf, bbox]);
   const pais = useDados(() => api.malhaPais(), []);
-  const itens = data?.itens ?? [];
+  const itens = useMemo(() => data?.itens ?? [], [data]);
 
   useEffect(() => {
     if (pronto && webRef.current) {
@@ -119,7 +119,9 @@ export default function Mapa() {
             if (msg.ready) setPronto(true);
             else if (msg.bbox) setBbox(msg.bbox.join(','));
             else if (msg.id) navegar('DetalheEscola', { id: String(msg.id) });
-          } catch {}
+          } catch {
+            /* mensagem inválida do WebView — ignora */
+          }
         }}
       />
 
