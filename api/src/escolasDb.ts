@@ -14,6 +14,7 @@ function montarFiltros(q0: Record<string, any>) {
   const add = (sql: string, val: any) => { params.push(val); cond.push(sql.replace('?', `$${params.length}`)); };
 
   if (q0.uf && q0.uf !== 'todas') add('e.estado = ?', String(q0.uf).toUpperCase());
+  if (q0.municipio) add('e.municipio ILIKE ?', String(q0.municipio).trim());
   if (q0.regiao && q0.regiao !== 'todas') add('e.regiao = ?', String(q0.regiao));
   if (q0.dependencia && q0.dependencia !== 'todas') add('e.dependencia = ?', String(q0.dependencia));
   if (q0.localizacao && q0.localizacao !== 'todas') add('e.localizacao = ?', String(q0.localizacao));
@@ -207,6 +208,28 @@ export async function exportarCSV(q0: Record<string, any>): Promise<string> {
   });
   const BOM = String.fromCharCode(0xfeff);
   return BOM + [header.join(';'), ...linhas].join('\r\n');
+}
+
+// ---- Estatísticas agregadas de um local (município/UF) p/ o assistente de IA ----
+export async function estatisticasLocais(q0: Record<string, any>) {
+  if (!dbReady) return null;
+  const { where, params } = montarFiltros(q0);
+  const [stat] = await q<any>(
+    `SELECT count(*)::int n,
+            round(avg(ee.ideb)::numeric, 2) AS ideb_medio,
+            round(avg(ee.taxa_aprovacao)::numeric, 1) AS aprovacao_media,
+            count(*) FILTER (WHERE ee.ideb >= 6)::int AS bom,
+            count(*) FILTER (WHERE ee.ideb >= 4.5 AND ee.ideb < 6)::int AS atencao,
+            count(*) FILTER (WHERE ee.ideb < 4.5)::int AS critico
+     ${BASE} WHERE ${where}`,
+    params
+  );
+  const melhores = await q<any>(
+    `SELECT e.nome, e.municipio, e.estado, ee.ideb
+     ${BASE} WHERE ${where} ORDER BY ee.ideb DESC NULLS LAST LIMIT 5`,
+    params
+  );
+  return { ...stat, melhores };
 }
 
 export async function contarEscolas(): Promise<number> {
