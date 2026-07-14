@@ -110,18 +110,3 @@ Stack: **React 19 + Vite + TypeScript + Tailwind CSS v4**, mapas com
 | `/usuarios` | Gestão de Usuários | Tabela de usuários, perfis e ativar/desativar |
 | `/fontes` | Fontes de Dados | Status das integrações (INEP/IBGE) |
 | `/configuracoes` | Configurações | Perfil, notificações e segurança (2FA) |
-
-### Funcionalidade nova: Mapa de Escolas
-
-Adicionada além do documento original. Cada escola é um **pin colorido pelo IDEB**
-(verde = bom, amarelo = atenção, coral = crítico). Clicar abre um popup com IDEB,
-aprovação e SAEB reais e um botão "Ver detalhe". Filtros por região, UF, dependência
-e faixa de desempenho. Com 14k escolas, os pins são **clusterizados** para performance.
-
-## Próximos passos
-
-- [ ] App **mobile** em Expo consumindo a mesma API
-- [ ] Banco de dados (PostgreSQL + PostGIS) no lugar dos JSON processados
-- [ ] Chatbot educacional (Claude API)
-- [ ] Autenticação real e push notifications
-"# senso-escolar" 
